@@ -151,10 +151,18 @@ const seed = {
   role: "visiteur",
   currentUserEmail: "",
   siteSettings: {
+    brandTop: "TRAVAUX",
+    brandBottom: "CORSE",
+    tagline: "Vos travaux, notre priorité",
     headline: "Trouvez le bon accompagnement pour vos travaux en Corse",
     intro: "TravauxCorse qualifie votre projet, vous oriente vers des entreprises adaptées et facilite l'achat direct des fournitures auprès de partenaires sélectionnés.",
     contactEmail: "contact@travauxcorse.fr",
-    contactPhone: "04 95 00 00 00"
+    contactPhone: "04 95 00 00 00",
+    footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.",
+    statCompanies: "+150",
+    statRequests: "+500",
+    statDepartments: "2",
+    statCategories: "20"
   },
   accounts: [
     { role: "admin", email: "admin@travauxcorse.fr", name: "Administrateur TravauxCorse", password: "admin" },
@@ -203,6 +211,7 @@ function loadState() {
 
 function normalizeState(next) {
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
+  next.customTrades = next.customTrades?.length ? next.customTrades : structuredClone(trades);
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
   next.currentUserEmail = next.currentUserEmail || "";
   next.supplierPartners = next.supplierPartners?.length ? next.supplierPartners : structuredClone(seed.supplierPartners);
@@ -240,6 +249,10 @@ function cta(label, page, cls = "") {
   return `<button class="${cls}" data-page="${page}">${label}</button>`;
 }
 
+function activeTrades() {
+  return state.customTrades?.length ? state.customTrades : trades;
+}
+
 function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
@@ -253,7 +266,7 @@ function render() {
 function renderHeader() {
   const links = [["home", "Accueil"], ["request", "Déposer une demande"], ["energy", "Travaux énergétiques"], ["suppliers", "Nos partenaires"], ["partner", "Devenir artisan partenaire"], ["login", "Connexion"]];
   return `<header class="site-header">
-    <a class="brand" href="#" data-page="home"><span>TRAVAUX</span>CORSE<small>Vos travaux, notre priorité</small></a>
+    <a class="brand" href="#" data-page="home"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a>
     <button class="menu-button secondary" data-menu>Menu</button>
     <nav class="main-nav" data-nav>${links.map(([page, label]) => `<button class="${state.page === page ? "active" : ""}" data-page="${page}">${label}</button>`).join("")}</nav>
     <button class="primary" data-page="request">Déposer une demande</button>
@@ -262,7 +275,7 @@ function renderHeader() {
 
 function renderFooter() {
   return `<footer class="site-footer">
-    <div><strong>TRAVAUXCORSE</strong><p>La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.</p><p>Haute-Corse & Corse-du-Sud</p></div>
+    <div><strong>${escapeHtml(state.siteSettings.brandTop)}${escapeHtml(state.siteSettings.brandBottom)}</strong><p>${escapeHtml(state.siteSettings.footerText)}</p><p>${escapeHtml(state.siteSettings.contactEmail)} · ${escapeHtml(state.siteSettings.contactPhone)}</p></div>
     <div><strong>Services</strong><button data-page="request">Déposer une demande</button><button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button></div>
     <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><button data-page="admin">Administration</button></div>
     <p class="legal">TravauxCorse qualifie les projets et oriente les clients vers des entreprises adaptées. Les fournitures peuvent être achetées directement par le client auprès de fournisseurs partenaires selon le projet.</p>
@@ -296,7 +309,7 @@ function renderHome() {
   return `
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Vos travaux, notre priorité</p>
+        <p class="eyebrow">${escapeHtml(state.siteSettings.tagline)}</p>
         <h1>${escapeHtml(state.siteSettings.headline)}</h1>
         <p>${escapeHtml(state.siteSettings.intro)}</p>
       <div class="hero-actions">${cta("Déposer une demande", "request", "primary")}${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
@@ -304,7 +317,7 @@ function renderHome() {
       <div class="quick-card">
         <h2>Commencez en 30 secondes</h2>
         <label>Type de travaux</label>
-        <select data-home-category>${trades.slice(0, 11).map((t) => `<option>${t}</option>`).join("")}</select>
+        <select data-home-category>${activeTrades().slice(0, 11).map((t) => `<option>${t}</option>`).join("")}</select>
         <label>Commune du chantier</label>
         <input data-home-commune placeholder="Ex : Bastia" />
         <label>Délai</label>
@@ -314,7 +327,7 @@ function renderHome() {
       </div>
     </section>
     <section class="stats">
-      ${stat("+150", "Entreprises & partenaires")}${stat("+500", "Demandes traitées")}${stat("2", "Départements couverts")}${stat("20", "Catégories de travaux")}
+      ${stat(state.siteSettings.statCompanies, "Entreprises & partenaires")}${stat(state.siteSettings.statRequests, "Demandes traitées")}${stat(state.siteSettings.statDepartments, "Départements couverts")}${stat(state.siteSettings.statCategories, "Catégories de travaux")}
     </section>
     <section class="band">
       <p class="eyebrow">Simple et efficace</p>
@@ -323,7 +336,7 @@ function renderHome() {
     </section>
     <section class="section">
       <div class="section-head"><p class="eyebrow">Tous corps de métier</p><h2>Types de travaux</h2><p>Quel que soit votre projet, TravauxCorse qualifie votre demande et vous oriente vers les bonnes entreprises.</p></div>
-      <div class="work-grid">${trades.slice(0, 16).map((trade) => workCard(trade, trade.includes("énergétiques") || trade.includes("Isolation") || trade.includes("Climatisation"))).join("")}</div>
+      <div class="work-grid">${activeTrades().slice(0, 16).map((trade) => workCard(trade, trade.includes("énergétiques") || trade.includes("Isolation") || trade.includes("Climatisation"))).join("")}</div>
     </section>
     ${renderEnergyIntro()}
   `;
@@ -369,7 +382,7 @@ function renderRequest() {
 
 function renderRequestStep() {
   const d = state.requestDraft;
-  if (d.step === 0) return `<h2>Type de travaux</h2><p>Sélectionnez la catégorie correspondant à votre besoin.</p><div class="choice-grid">${trades.map((t) => `<button type="button" class="${d.category === t ? "selected" : ""}" data-category-choice="${escapeHtml(t)}">${t}</button>`).join("")}</div>${stepActions()}`;
+  if (d.step === 0) return `<h2>Type de travaux</h2><p>Sélectionnez la catégorie correspondant à votre besoin.</p><div class="choice-grid">${activeTrades().map((t) => `<button type="button" class="${d.category === t ? "selected" : ""}" data-category-choice="${escapeHtml(t)}">${t}</button>`).join("")}</div>${stepActions()}`;
   if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
   if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
   if (d.step === 3) return `<h2>Photos & documents</h2><p>Pour cette version locale, indiquez les documents disponibles. Dans une version connectée, cette étape peut recevoir des fichiers.</p><label>Documents disponibles<textarea name="files" placeholder="Photos, plans, diagnostics, factures, vidéos...">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
@@ -394,7 +407,7 @@ function renderArtisans() {
       <aside class="filters">
         <div class="panel-head"><h2>Filtres</h2><button class="secondary" data-reset-filters>Réinitialiser</button></div>
         <label>Mot-clé<input data-filter="q" value="${escapeHtml(f.q)}" placeholder="Entreprise, métier..." /></label>
-        <label>Métier<select data-filter="trade"><option value="">Tous les métiers</option>${trades.map((t) => `<option ${f.trade === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label>Métier<select data-filter="trade"><option value="">Tous les métiers</option>${activeTrades().map((t) => `<option ${f.trade === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
         <label>Zone<select data-filter="zone"><option value="">Toutes les zones</option>${["Ajaccio", "Bastia", "Calvi", "Corte", "Porto-Vecchio", "Haute-Corse", "Corse-du-Sud"].map((z) => `<option ${f.zone === z ? "selected" : ""}>${z}</option>`).join("")}</select></label>
         ${checkFilter("energy", "Travaux énergétiques")}${checkFilter("urgent", "Intervention urgente")}${checkFilter("verified", "Artisan validé uniquement")}
       </aside>
@@ -469,7 +482,7 @@ function renderSuppliers() {
       <p>Les partenaires présentés ci-dessous sont des exemples de familles que la plateforme peut référencer : chauffage, climatisation, électricité, menuiseries, isolation, sanitaire et matériaux.</p>
     </div>
 
-    <div class="supplier-grid">${state.supplierPartners.map(renderSupplierCard).join("")}</div>
+    <div class="supplier-grid">${state.supplierPartners.filter((supplier) => !supplier.hidden).sort((a, b) => (a.order || 0) - (b.order || 0)).map(renderSupplierCard).join("")}</div>
 
     <div class="supplier-note">
       <div>
@@ -576,7 +589,7 @@ function renderPartner() {
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
         <label>Email<input type="email" name="email" required /></label><label>Téléphone<input name="phone" required /></label>
-        <label>Métier principal<select name="trade">${trades.map((t) => `<option>${t}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
+        <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${t}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
       <button class="primary" type="submit">Envoyer ma candidature</button>
