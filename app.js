@@ -324,7 +324,7 @@ function renderHome() {
       <div class="hero-actions">${cta("Décrire mon projet","request","primary")}${cta("Rejoindre le réseau","partner","ghost-light")}</div>
       <div class="new-proof"><span><b>Local</b>Réseau ancré en Corse</span><span><b>Qualifié</b>Demande étudiée</span><span><b>Simple</b>Suivi centralisé</span></div>
     </div>
-    <aside class="new-lead-card">
+    <aside class="new-lead-card" id="deposer">
       <small>Votre demande · 2 minutes</small><h2>Quel est votre projet ?</h2>
       <label>Type de travaux<select data-home-category>${activeTrades().map(t=>`<option>${t}</option>`).join("")}</select></label>
       <label>Commune<input data-home-commune placeholder="Bastia, Ajaccio, Corte…" /></label>
