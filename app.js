@@ -257,7 +257,7 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
-      <main>${renderPage()}</main>
+      <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
   bind();

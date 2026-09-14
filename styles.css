@@ -983,3 +983,96 @@ th { background: #f5f7fa; color: #0d1c2b; }
 .editor-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin-bottom:24px}.editor-heading h2{margin-bottom:6px}.editor-list{display:grid;gap:18px}.editor-partner-card{border:1px solid #dfe6eb;border-radius:14px;padding:20px;background:#fbfcfd}.editor-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.editor-card-head strong{font-size:18px;color:#071827}.editor-card-head span{font-size:12px;background:#edf2f5;padding:5px 9px;border-radius:20px}.editor-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:18px}.danger-btn{border:1px solid #d9534f;background:#fff;color:#b52b27;padding:8px 11px;border-radius:7px;cursor:pointer}.editor-help{margin-top:22px;padding:16px;background:#eef6fb;border-left:4px solid #0d638c;border-radius:8px}.editor-help p{margin:5px 0 0}.content-editor textarea{min-height:90px}
 @media(max-width:760px){.editor-heading{display:grid}.editor-heading .primary{width:100%}.editor-actions>*{flex:1}.editor-card-head{align-items:flex-start}}
 .cms-intro{background:linear-gradient(130deg,#071827,#15364e);color:#fff;padding:25px;border-radius:15px;margin-bottom:18px}.cms-intro h2{color:#fff;margin:4px 0}.cms-section{background:#fff;border:1px solid #dfe6eb;border-radius:13px;margin-bottom:14px;overflow:hidden;box-shadow:0 4px 18px #10283a08}.cms-section>summary{padding:18px 20px;font-weight:800;color:#071827;cursor:pointer;list-style:none;display:flex;justify-content:space-between}.cms-section>summary:after{content:"+";color:#f28c00;font-size:20px}.cms-section[open]>summary{border-bottom:1px solid #e7edf1}.cms-section[open]>summary:after{content:"−"}.cms-body{padding:20px}.cms-body>textarea,.cms-body textarea[data-export-output]{width:100%;min-height:170px;padding:13px;border:1px solid #cad3dc;border-radius:9px;font-family:inherit}.cms-nested{padding:0}.cms-nested>.portal-card{box-shadow:none;border-radius:0}.import-label{display:inline-flex;align-items:center;cursor:pointer}.content-editor{box-shadow:none}.content-editor>.editor-help{margin-bottom:0}
+
+
+/* Refonte TravauxCorse — finition premium 2026 */
+html { scroll-behavior: smooth; }
+body {
+  background:
+    radial-gradient(circle at 90% 4%, rgba(242,140,0,.10), transparent 28rem),
+    linear-gradient(180deg, #fbfcfd 0, #fff 36rem);
+  text-rendering: optimizeLegibility;
+}
+::selection { background: rgba(242,140,0,.24); color: var(--navy-2); }
+a, button, input, select, textarea { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease, background-color .2s ease, color .2s ease; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(242,140,0,.32);
+  outline-offset: 3px;
+}
+.skip-link {
+  position: fixed; left: 18px; top: 12px; z-index: 9999;
+  padding: 10px 16px; border-radius: 8px; background: #fff; color: var(--navy);
+  box-shadow: var(--shadow); transform: translateY(-180%);
+}
+.skip-link:focus { transform: translateY(0); }
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(18px) saturate(1.3);
+  border-bottom: 1px solid rgba(13,28,43,.08);
+}
+.site-header .brand { letter-spacing: -.035em; }
+.site-header .brand small { letter-spacing: .09em; }
+.main-nav button { position: relative; }
+.main-nav button::after {
+  content: ""; position: absolute; left: 14px; right: 14px; bottom: 3px;
+  height: 2px; border-radius: 2px; background: var(--brand);
+  transform: scaleX(0); transition: transform .2s ease;
+}
+.main-nav button:hover::after, .main-nav button.active::after { transform: scaleX(1); }
+.hero {
+  position: relative; overflow: hidden;
+  background:
+    linear-gradient(118deg, rgba(7,24,39,.98), rgba(13,43,64,.92)),
+    #071827;
+}
+.hero::before {
+  content: ""; position: absolute; width: 32rem; height: 32rem; border-radius: 50%;
+  right: -9rem; top: -15rem; background: radial-gradient(circle, rgba(242,140,0,.34), transparent 68%);
+}
+.hero::after {
+  content: "CORSICA"; position: absolute; right: -1rem; bottom: -3.5rem;
+  font-size: clamp(5rem, 15vw, 13rem); font-weight: 900; letter-spacing: -.08em;
+  color: rgba(255,255,255,.035); pointer-events: none;
+}
+.hero > * { position: relative; z-index: 1; }
+.hero h1 { max-width: 920px; letter-spacing: -.045em; text-wrap: balance; }
+.hero p { max-width: 760px; }
+.primary { box-shadow: 0 10px 24px rgba(242,140,0,.20); }
+.primary:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(242,140,0,.30); }
+.secondary:hover { transform: translateY(-2px); }
+.service-card, .artisan-card, .supplier-card, .energy-card, .process-card {
+  border-color: rgba(13,28,43,.09);
+  box-shadow: 0 12px 34px rgba(7,24,39,.065);
+}
+.service-card:hover, .artisan-card:hover, .supplier-card:hover, .energy-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 22px 50px rgba(7,24,39,.12);
+  border-color: rgba(242,140,0,.28);
+}
+.service-card h3, .artisan-card h3, .supplier-card h3 { letter-spacing: -.02em; }
+.stats {
+  background: linear-gradient(135deg, #071827, #123a55);
+  border-radius: 18px; overflow: hidden;
+}
+.stats article { position: relative; }
+.stats article + article::before {
+  content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 1px;
+  background: rgba(255,255,255,.16);
+}
+section h2 { letter-spacing: -.035em; text-wrap: balance; }
+.site-footer { background: #06131f; border-top: 4px solid var(--brand); }
+.portal-sidebar { background: linear-gradient(180deg, #071827, #0d2b40); }
+.portal-card, .project-detail, .portal-stat { border: 1px solid rgba(13,28,43,.08); box-shadow: 0 12px 32px rgba(7,24,39,.07); }
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1, .hero p, .hero .hero-actions { animation: tc-rise .65s both; }
+  .hero p { animation-delay: .08s; }
+  .hero .hero-actions { animation-delay: .16s; }
+  @keyframes tc-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+}
+@media (max-width: 760px) {
+  .site-header { backdrop-filter: blur(12px); }
+  .hero { padding-top: 56px; padding-bottom: 56px; }
+  .hero::after { font-size: 24vw; bottom: -1rem; }
+  .stats article + article::before { display: none; }
+}
