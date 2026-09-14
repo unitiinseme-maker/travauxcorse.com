@@ -199,6 +199,10 @@ const seed = {
 };
 
 let state = loadState();
+if ((location.pathname === "/" || location.pathname.endsWith("/index.html")) && ["advice", "references"].includes(state.page)) {
+  state.page = "home";
+  saveState();
+}
 
 function loadState() {
   try {
