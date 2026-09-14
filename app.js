@@ -264,7 +264,7 @@ function render() {
 }
 
 function renderHeader() {
-  const links = [["home", "Accueil"], ["request", "Déposer une demande"], ["energy", "Travaux énergétiques"], ["suppliers", "Nos partenaires"], ["partner", "Devenir artisan partenaire"], ["login", "Connexion"]];
+  const links = [["home", "Accueil"], ["request", "Déposer une demande"], ["energy", "Travaux énergétiques"], ["advice", "Conseils & guides"], ["references", "Réalisations"], ["suppliers", "Partenaires"], ["login", "Connexion"]];
   return `<header class="site-header">
     <a class="brand" href="#" data-page="home"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a>
     <button class="menu-button secondary" data-menu>Menu</button>
@@ -289,6 +289,8 @@ function renderPage() {
     request: renderRequest,
     suppliers: renderSuppliers,
     energy: renderEnergy,
+    advice: () => { window.location.href = "/conseils/"; return ""; },
+    references: () => { window.location.href = "/realisations/"; return ""; },
     partner: renderPartner,
     login: () => window.TravauxCorsePortal.render("auth", state),
     auth: () => window.TravauxCorsePortal.render("auth", state),
