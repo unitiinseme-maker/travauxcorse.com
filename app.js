@@ -306,40 +306,44 @@ function renderPage() {
 }
 
 function renderHome() {
+  const services = ["Maçonnerie / Gros œuvre","Terrassement / VRD","Toiture / Charpente / Couverture","Électricité","Plomberie","Chauffage / Climatisation","Ventilation / VMC","Menuiseries extérieures","Rénovation complète"];
+  const flow = [
+    ["01","Particulier","Dépose son projet en quelques minutes."],
+    ["02","TravauxCorse","Qualifie le besoin et choisit les bons profils."],
+    ["03","Artisan","Accepte le chantier et organise son intervention."],
+    ["04","Fournisseur","Prépare les matériaux, achetables directement si nécessaire."]
+  ];
   return `
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">${escapeHtml(state.siteSettings.tagline)}</p>
-        <h1>${escapeHtml(state.siteSettings.headline)}</h1>
-        <p>${escapeHtml(state.siteSettings.intro)}</p>
-      <div class="hero-actions">${cta("Déposer une demande", "request", "primary")}${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
-      </div>
-      <div class="quick-card">
-        <h2>Commencez en 30 secondes</h2>
-        <label>Type de travaux</label>
-        <select data-home-category>${activeTrades().slice(0, 11).map((t) => `<option>${t}</option>`).join("")}</select>
-        <label>Commune du chantier</label>
-        <input data-home-commune placeholder="Ex : Bastia" />
-        <label>Délai</label>
-        <select data-home-delay><option>Urgent</option><option>Sous 1 mois</option><option>Sous 3 mois</option><option>Pas de délai précis</option></select>
-        <button class="primary" data-start-request>Déposer une demande</button>
-        <p class="muted">Gratuit, sans engagement, réponse rapide.</p>
-      </div>
-    </section>
-    <section class="stats">
-      ${stat(state.siteSettings.statCompanies, "Entreprises & partenaires")}${stat(state.siteSettings.statRequests, "Demandes traitées")}${stat(state.siteSettings.statDepartments, "Départements couverts")}${stat(state.siteSettings.statCategories, "Catégories de travaux")}
-    </section>
-    <section class="band">
-      <p class="eyebrow">Simple et efficace</p>
-      <h2>Comment ça marche ?</h2>
-      <div class="steps">${["Décrivez votre projet", "La demande est vérifiée", "Nous proposons les entreprises", "Vous gardez la maîtrise"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Indiquez votre besoin, votre commune, votre délai et votre budget.", "TravauxCorse analyse votre demande avant transmission.", "Nous orientons votre projet vers des entreprises adaptées.", "Vous échangez, comparez et achetez vos fournitures en direct si besoin."][i]}</p></article>`).join("")}</div>
-    </section>
-    <section class="section">
-      <div class="section-head"><p class="eyebrow">Tous corps de métier</p><h2>Types de travaux</h2><p>Quel que soit votre projet, TravauxCorse qualifie votre demande et vous oriente vers les bonnes entreprises.</p></div>
-      <div class="work-grid">${activeTrades().slice(0, 16).map((trade) => workCard(trade, trade.includes("énergétiques") || trade.includes("Isolation") || trade.includes("Climatisation"))).join("")}</div>
-    </section>
-    ${renderEnergyIntro()}
-  `;
+  <section class="new-hero">
+    <div class="new-hero-copy">
+      <p class="new-kicker">La plateforme travaux 100 % Corse</p>
+      <h1>Votre projet.<br><em>Les bons professionnels.</em><br>Sans perdre de temps.</h1>
+      <p>TravauxCorse analyse votre besoin, sélectionne les artisans adaptés et facilite l’achat des matériaux auprès de fournisseurs partenaires.</p>
+      <div class="hero-actions">${cta("Décrire mon projet","request","primary")}${cta("Rejoindre le réseau","partner","ghost-light")}</div>
+      <div class="new-proof"><span><b>Local</b>Réseau ancré en Corse</span><span><b>Qualifié</b>Demande étudiée</span><span><b>Simple</b>Suivi centralisé</span></div>
+    </div>
+    <aside class="new-lead-card">
+      <small>Votre demande · 2 minutes</small><h2>Quel est votre projet ?</h2>
+      <label>Type de travaux<select data-home-category>${activeTrades().map(t=>`<option>${t}</option>`).join("")}</select></label>
+      <label>Commune<input data-home-commune placeholder="Bastia, Ajaccio, Corte…" /></label>
+      <label>Démarrage<select data-home-delay><option>Urgent</option><option>Sous 1 mois</option><option>Sous 3 mois</option><option>Pas de délai précis</option></select></label>
+      <button class="primary" data-start-request>Recevoir une orientation</button>
+      <p>Gratuit · Sans engagement</p>
+    </aside>
+  </section>
+  <div class="new-marquee"><span>PARTICULIERS</span><i></i><span>ARTISANS</span><i></i><span>FOURNISSEURS</span><i></i><span>TOUTE LA CORSE</span></div>
+  <section class="new-intro"><p class="new-kicker">Pourquoi TravauxCorse ?</p><div><h2>Un chantier ne devrait pas commencer par des semaines de recherches.</h2><p>Nous devenons le point de rencontre fiable entre votre besoin, le savoir-faire local et les bons matériaux.</p></div></section>
+  <section class="new-flow">
+    <div class="new-title"><p class="new-kicker">Le fonctionnement</p><h2>Un circuit plus fluide pour tout le monde.</h2></div>
+    <div class="new-flow-grid">${flow.map(([n,t,d])=>`<article><span>${n}</span><h3>${t}</h3><p>${d}</p></article>`).join("")}</div>
+    <div class="new-result"><strong>Le résultat</strong><p>Moins d’avance de trésorerie pour l’artisan, plus de visibilité pour le client et une organisation plus nette du chantier.</p></div>
+  </section>
+  <section class="new-services">
+    <div class="new-title"><p class="new-kicker">Tous corps d’état</p><h2>Les métiers pour concrétiser votre projet.</h2></div>
+    <div class="new-service-grid">${services.map((s,i)=>`<article><small>0${i+1}</small><h3>${s}</h3><button data-request-category="${escapeHtml(s)}">Faire une demande →</button></article>`).join("")}</div>
+  </section>
+  <section class="new-energy"><div><p class="new-kicker">Rénover mieux</p><h2>Confort, énergie et climat corse.</h2><p>Isolation, climatisation, ventilation, pompe à chaleur, menuiseries et photovoltaïque : construisons un projet cohérent.</p>${cta("Découvrir les solutions","energy","primary")}</div><aside><strong>Un accompagnement clair</strong><span>Qualification du besoin</span><span>Orientation locale</span><span>Fournitures coordonnées</span><span>Suivi centralisé</span></aside></section>
+  <section class="new-final"><p class="new-kicker">Un projet en tête ?</p><h2>Parlons de vos travaux.</h2>${cta("Déposer mon projet gratuitement","request","primary")}</section>`;
 }
 
 function stat(value, label) {
