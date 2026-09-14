@@ -199,10 +199,13 @@ const seed = {
 };
 
 let state = loadState();
-if ((location.pathname === "/" || location.pathname.endsWith("/index.html")) && ["advice", "references"].includes(state.page)) {
-  state.page = "home";
-  saveState();
+const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"]);
+function pageFromUrl() {
+  const route = location.hash.slice(1);
+  if (route === "deposer") return "request";
+  return applicationPages.has(route) ? route : "home";
 }
+state.page = pageFromUrl();
 
 function loadState() {
   try {
@@ -214,6 +217,11 @@ function loadState() {
 }
 
 function normalizeState(next) {
+  next.requestDraft = { ...structuredClone(seed.requestDraft), ...(next.requestDraft || {}) };
+  next.filters = { ...structuredClone(seed.filters), ...(next.filters || {}) };
+  ["accounts", "requests", "artisans", "partners", "supplierPartners"].forEach((key) => {
+    if (!Array.isArray(next[key])) next[key] = structuredClone(seed[key]);
+  });
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
   next.customTrades = next.customTrades?.length ? next.customTrades : structuredClone(trades);
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
@@ -239,11 +247,30 @@ function normalizeState(next) {
 }
 
 function saveState() {
-  localStorage.setItem("travaux-corse-state", JSON.stringify(state));
+  try {
+    localStorage.setItem("travaux-corse-state", JSON.stringify(state));
+  } catch {
+    if (!document.querySelector("[data-storage-warning]")) {
+      const warning = document.createElement("p");
+      warning.dataset.storageWarning = "";
+      warning.setAttribute("role", "alert");
+      warning.textContent = "Stockage du navigateur indisponible : les modifications de cette session ne seront pas conservées.";
+      document.body.prepend(warning);
+    }
+  }
 }
 
 function setPage(page) {
+  captureRequestDraft();
+  if (page === "advice" || page === "references") {
+    state.page = "home";
+    saveState();
+    location.assign(page === "advice" ? "/conseils/" : "/realisations/");
+    return;
+  }
+  if (!applicationPages.has(page)) page = "home";
   state.page = page;
+  history.pushState(null, "", page === "home" ? location.pathname + location.search : "#" + page);
   saveState();
   render();
   scrollTo({ top: 0, behavior: "smooth" });
@@ -261,6 +288,7 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
+      ${["request", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin", "partner"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Version de démonstration : les comptes et demandes sont conservés uniquement dans ce navigateur. Aucun dossier, document ou email n’est transmis. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
       <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
@@ -292,6 +320,7 @@ function renderPage() {
     home: renderHome,
     request: renderRequest,
     suppliers: renderSuppliers,
+    artisans: renderArtisans,
     energy: renderEnergy,
     advice: () => { state.page = "home"; saveState(); window.location.href = "/conseils/"; return ""; },
     references: () => { state.page = "home"; saveState(); window.location.href = "/realisations/"; return ""; },
@@ -727,7 +756,16 @@ function renderSiteSettingsForm() {
 
 function bind() {
   document.querySelectorAll("[data-page]").forEach((el) => el.addEventListener("click", (event) => { event.preventDefault(); setPage(el.dataset.page); }));
-  document.querySelector("[data-menu]")?.addEventListener("click", () => document.querySelector("[data-nav]")?.classList.toggle("open"));
+  const menuButton = document.querySelector("[data-menu]");
+  const menu = document.querySelector("[data-nav]");
+  if (menuButton && menu) {
+    menu.id = "main-navigation";
+    menuButton.setAttribute("aria-controls", menu.id);
+    menuButton.setAttribute("aria-expanded", "false");
+    menuButton.addEventListener("click", () => {
+      menuButton.setAttribute("aria-expanded", String(menu.classList.toggle("open")));
+    });
+  }
   document.querySelector("[data-start-request]")?.addEventListener("click", () => {
     state.requestDraft.category = document.querySelector("[data-home-category]")?.value || "";
     state.requestDraft.commune = document.querySelector("[data-home-commune]")?.value || "";
@@ -747,17 +785,46 @@ function bind() {
   window.TravauxCorsePortal?.bind(state, { render, saveState, setPage, uid, today });
 }
 
+function captureRequestDraft() {
+  const form = document.querySelector("[data-request-form]");
+  if (!form) return;
+  new FormData(form).forEach((value, key) => { state.requestDraft[key] = value; });
+}
+
+function validateRequestStep() {
+  const d = state.requestDraft;
+  if (d.step === 0 && !d.category) {
+    alert("Choisissez un type de travaux pour continuer.");
+    return false;
+  }
+  return document.querySelector("[data-request-form]")?.reportValidity() !== false;
+}
+
 function bindRequest() {
-  document.querySelectorAll("[data-step]").forEach((el) => el.addEventListener("click", () => { state.requestDraft.step = Number(el.dataset.step); saveState(); render(); }));
+  document.querySelector("[data-request-form]")?.addEventListener("input", () => { captureRequestDraft(); saveState(); });
+  document.querySelector("[data-request-form]")?.addEventListener("change", () => { captureRequestDraft(); saveState(); });
+  document.querySelectorAll("[data-step]").forEach((el) => el.addEventListener("click", () => {
+    captureRequestDraft();
+    const target = Number(el.dataset.step);
+    if (target > state.requestDraft.step && (target !== state.requestDraft.step + 1 || !validateRequestStep())) return;
+    state.requestDraft.step = target;
+    saveState();
+    render();
+  }));
   document.querySelectorAll("[data-category-choice]").forEach((el) => el.addEventListener("click", () => { state.requestDraft.category = el.dataset.categoryChoice; saveState(); render(); }));
-  document.querySelector("[data-prev]")?.addEventListener("click", () => { state.requestDraft.step = Math.max(0, state.requestDraft.step - 1); saveState(); render(); });
+  document.querySelector("[data-prev]")?.addEventListener("click", () => { captureRequestDraft(); state.requestDraft.step = Math.max(0, state.requestDraft.step - 1); saveState(); render(); });
   document.querySelector("[data-request-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
+    if (!validateRequestStep()) return;
     const data = new FormData(event.currentTarget);
     data.forEach((value, key) => { state.requestDraft[key] = value; });
     if (state.requestDraft.step < 5) {
       state.requestDraft.step += 1;
     } else {
+      if (!state.requestDraft.category || !state.requestDraft.title.trim() || !state.requestDraft.commune.trim() || !state.requestDraft.name.trim() || !state.requestDraft.phone.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.requestDraft.email)) {
+        alert("Complétez le type de travaux, le projet, la commune et vos coordonnées avant de terminer.");
+        return;
+      }
       state.requests.unshift({ id: uid("dem"), date: today(), status: "Nouvelle", assignedSupplier: "", assignedArtisan: "", assignedArtisanId: "", adminNote: "Votre demande vient d'être reçue. TravauxCorse va la qualifier.", timeline: ["Demande déposée"], ...state.requestDraft });
       if (state.requestDraft.email && !state.accounts.some((account) => account.email === state.requestDraft.email)) {
         state.accounts.push({ role: "client", email: state.requestDraft.email, name: state.requestDraft.name || "Client", password: "client" });
@@ -862,4 +929,16 @@ function buildTimeline(request) {
   return timeline;
 }
 
+window.addEventListener("popstate", () => { captureRequestDraft(); state.page = pageFromUrl(); render(); });
+window.addEventListener("hashchange", () => { captureRequestDraft(); state.page = pageFromUrl(); render(); });
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  const menu = document.querySelector("[data-nav]");
+  if (menu?.classList.contains("open")) {
+    menu.classList.remove("open");
+    const button = document.querySelector("[data-menu]");
+    button?.setAttribute("aria-expanded", "false");
+    button?.focus();
+  }
+});
 render();
