@@ -1209,3 +1209,13 @@ html,body{max-width:100%;overflow-x:hidden}
     display: inline-block;
   }
 }
+
+/* Identité de l’entreprise, distincte du nom visible TravauxCorse. */
+.editorial-footer { flex-wrap: wrap; }
+.company-identity { grid-column: 1 / -1; flex-basis: 100%; min-width: 0; width: 100%; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.2); color: #dbe6ee; font-size: 14px; line-height: 1.65; overflow-wrap: anywhere; }
+.company-identity p { margin: 0 0 10px; }
+.company-identity summary { cursor: pointer; min-height: 44px; padding: 10px 0; color: #fff; font-weight: 700; }
+.company-identity a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.company-identity summary:focus-visible, .company-identity a:focus-visible { outline: 2px solid #f28c00; outline-offset: 4px; }
+.editorial-footer .company-identity strong { display: inline; margin: 0; }
+@media (max-width: 850px) { .editorial-footer .company-identity { margin-top: 20px; } }
