@@ -156,7 +156,7 @@ const seed = {
     tagline: "Vos travaux, notre priorité",
     headline: "Trouvez le bon accompagnement pour vos travaux en Corse",
     intro: "TravauxCorse qualifie votre projet, vous oriente vers des entreprises adaptées et facilite l'achat direct des fournitures auprès de partenaires sélectionnés.",
-    contactEmail: "contact@travauxcorse.fr",
+    contactEmail: "contact.travauxcorse@gmail.com",
     contactPhone: "04 95 00 00 00",
     footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.",
     statCompanies: "+150",
@@ -223,6 +223,7 @@ function normalizeState(next) {
     if (!Array.isArray(next[key])) next[key] = structuredClone(seed[key]);
   });
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
+  if (next.siteSettings.contactEmail === "contact@travauxcorse.fr") next.siteSettings.contactEmail = seed.siteSettings.contactEmail;
   next.customTrades = next.customTrades?.length ? next.customTrades : structuredClone(trades);
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
   next.currentUserEmail = next.currentUserEmail || "";
@@ -288,7 +289,7 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
-      ${["request", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin", "partner"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Version de démonstration : les comptes et demandes sont conservés uniquement dans ce navigateur. Aucun dossier, document ou email n’est transmis. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
+      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin", "partner"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
       <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
@@ -405,6 +406,7 @@ function renderRequest() {
   return `<section class="page-section narrow">
     <p class="eyebrow">Gratuit · Sans engagement · Réponse rapide</p>
     <h1>Déposer une demande</h1>
+    <p>Sans création de compte. À la dernière étape, une vérification antispam précède l’envoi par email à TravauxCorse. Votre brouillon est conservé dans ce navigateur pour vous permettre de revenir en arrière.</p>
     <div class="progress"><div style="width:${(d.step / 5) * 100}%"></div></div>
     <div class="stepper">${steps.map((s, i) => `<button class="${d.step === i ? "active" : ""}" data-step="${i}"><span>${i + 1}</span>${s}</button>`).join("")}</div>
     <form class="form-panel" data-request-form>${renderRequestStep()}</form>
@@ -416,9 +418,9 @@ function renderRequestStep() {
   if (d.step === 0) return `<h2>Type de travaux</h2><p>Sélectionnez la catégorie correspondant à votre besoin.</p><div class="choice-grid">${activeTrades().map((t) => `<button type="button" class="${d.category === t ? "selected" : ""}" data-category-choice="${escapeHtml(t)}">${t}</button>`).join("")}</div>${stepActions()}`;
   if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
   if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
-  if (d.step === 3) return `<h2>Photos & documents</h2><p>Pour cette version locale, indiquez les documents disponibles. Dans une version connectée, cette étape peut recevoir des fichiers.</p><label>Documents disponibles<textarea name="files" placeholder="Photos, plans, diagnostics, factures, vidéos...">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
+  if (d.step === 3) return `<h2>Photos & documents</h2><p>Cette étape est facultative : indiquez simplement les documents disponibles. Aucun fichier n’est joint ici ; vous pourrez échanger vos photos et plans lors de la prise de contact. Ne saisissez pas de données confidentielles.</p><label>Documents disponibles<textarea name="files" placeholder="Photos, plans, diagnostics, contraintes d’accès...">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
   if (d.step === 4) return `<h2>Vos coordonnées</h2><div class="form-grid"><label>Nom et prénom<input name="name" value="${escapeHtml(d.name)}" required /></label><label>Téléphone<input name="phone" value="${escapeHtml(d.phone)}" required /></label><label class="full">Email<input type="email" name="email" value="${escapeHtml(d.email)}" required /></label></div>${stepActions()}`;
-  return `<h2>Confirmation</h2><div class="summary">${["category", "title", "commune", "delay", "budget", "property", "surface", "name", "email", "phone"].map((k) => `<p><strong>${labelFor(k)}</strong><span>${escapeHtml(d[k] || "Non renseigné")}</span></p>`).join("")}</div><label class="full">Description<textarea name="description">${escapeHtml(d.description)}</textarea></label><div class="actions"><button type="button" class="secondary" data-prev>Retour</button><button type="submit" class="primary">Envoyer la demande</button></div>`;
+  return `<h2>Vérifiez votre demande</h2><div class="summary">${["category", "title", "commune", "delay", "budget", "property", "surface", "name", "email", "phone"].map((k) => `<p><strong>${labelFor(k)}</strong><span>${escapeHtml(d[k] || "Non renseigné")}</span></p>`).join("")}</div><label class="full">Description<textarea name="description">${escapeHtml(d.description)}</textarea></label><p><strong>Documents et informations utiles :</strong> ${escapeHtml(d.files || "Non renseignés")}</p><p>Votre demande et vos coordonnées seront transmises à <strong>contact.travauxcorse@gmail.com</strong> via FormSubmit pour traiter votre projet et vous recontacter. FormSubmit conserve les envois pendant 30 jours. <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">Confidentialité du service d’envoi</a>.</p><label style="display:flex;align-items:flex-start;gap:12px;font-weight:500"><input type="checkbox" required style="width:20px;min-width:20px;min-height:20px;margin-top:3px"> J’accepte de transmettre ces informations pour être recontacté au sujet de mon projet.</label><p data-send-status role="status" aria-live="polite"></p><div class="actions"><button type="button" class="secondary" data-prev>Retour</button><button type="submit" class="primary">Envoyer ma demande</button></div><p>Après le clic, terminez la vérification sur FormSubmit. Si l’envoi échoue, revenez ici : votre brouillon n’aura pas été effacé.</p>`;
 }
 
 function labelFor(key) {
@@ -821,18 +823,66 @@ function bindRequest() {
         alert("Complétez le type de travaux, le projet, la commune et vos coordonnées avant de terminer.");
         return;
       }
-      state.requests.unshift({ id: uid("dem"), date: today(), status: "Nouvelle", assignedSupplier: "", assignedArtisan: "", assignedArtisanId: "", adminNote: "Votre demande vient d'être reçue. TravauxCorse va la qualifier.", timeline: ["Demande déposée"], ...state.requestDraft });
-      if (state.requestDraft.email && !state.accounts.some((account) => account.email === state.requestDraft.email)) {
-        state.accounts.push({ role: "client", email: state.requestDraft.email, name: state.requestDraft.name || "Client", password: "client" });
-      }
-      state.currentUserEmail = state.requestDraft.email;
-      state.requestDraft = structuredClone(seed.requestDraft);
-      state.role = "client";
-      state.page = "client";
+      saveState();
+      sendProjectByEmail(state.requestDraft, event.currentTarget);
+      return;
     }
     saveState();
     render();
   });
+}
+
+function sendProjectByEmail(draft, sourceForm) {
+  if (sourceForm.dataset.sending === "true") return;
+  const payload = {
+    _subject: "TravauxCorse — Nouvelle demande de travaux",
+    _template: "table",
+    _captcha: "true",
+    name: draft.name,
+    email: draft.email,
+    Téléphone: draft.phone,
+    Métier: draft.category,
+    Projet: draft.title,
+    Commune: draft.commune,
+    Délai: draft.delay,
+    Budget: draft.budget,
+    Bien: draft.property,
+    Surface: draft.surface,
+    Description: draft.description,
+    "Documents disponibles et informations utiles": draft.files,
+    "Accord de contact pour ce projet": "Oui"
+  };
+  const delivery = document.createElement("form");
+  delivery.method = "POST";
+  delivery.action = "https://formsubmit.co/contact.travauxcorse@gmail.com";
+  delivery.hidden = true;
+  for (const [name, value] of Object.entries(payload)) {
+    const field = document.createElement("input");
+    field.type = "hidden";
+    field.name = name;
+    field.value = String(value ?? "");
+    delivery.appendChild(field);
+  }
+  const status = sourceForm.querySelector("[data-send-status]");
+  const button = sourceForm.querySelector('button[type="submit"]');
+  const restore = () => {
+    sourceForm.dataset.sending = "false";
+    if (button) button.disabled = false;
+    if (status) status.textContent = "Si la page d’envoi ne s’est pas ouverte, réessayez. Votre brouillon est conservé.";
+  };
+  sourceForm.dataset.sending = "true";
+  if (button) button.disabled = true;
+  if (status) status.textContent = "Ouverture de la vérification antispam… L’envoi n’est pas encore confirmé.";
+  document.body.appendChild(delivery);
+  try {
+    HTMLFormElement.prototype.submit.call(delivery);
+  } catch {
+    restore();
+  } finally {
+    delivery.remove();
+  }
+  window.addEventListener("pageshow", restore, { once: true });
+  window.setTimeout(restore, 15000);
 }
 
 function bindFilters() {
