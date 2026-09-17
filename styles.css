@@ -1171,3 +1171,41 @@ html,body{max-width:100%;overflow-x:hidden}
   .actions{flex-wrap:wrap}
   .actions button{max-width:100%}
 }
+
+
+/* Correctifs de lisibilité et de navigation mobile */
+.stats span {
+  color: #fff;
+  line-height: 1.35;
+}
+.reference-empty .primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  max-width: 100%;
+  min-height: 52px;
+  padding: 14px 20px;
+  line-height: 1.3;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.editorial-footer strong,
+.editorial-footer span {
+  display: block;
+}
+@media (max-width: 850px) {
+  .reference-empty .primary {
+    width: 100%;
+  }
+  .editorial-footer strong {
+    margin-bottom: 10px;
+  }
+  .editorial-footer span {
+    line-height: 1.6;
+  }
+  .editorial-footer a {
+    display: inline-block;
+  }
+}
