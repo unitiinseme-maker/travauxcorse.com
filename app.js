@@ -369,10 +369,6 @@ function renderHome() {
       <h2>Comment ça marche ?</h2>
       <div class="steps">${["Décrivez votre projet", "La demande est vérifiée", "Nous proposons les entreprises", "Vous gardez la maîtrise"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Indiquez votre besoin, votre commune, votre délai et votre budget.", "TravauxCorse analyse votre demande avant transmission.", "Nous orientons votre projet vers des entreprises adaptées.", "Vous échangez, comparez et achetez vos fournitures en direct si besoin."][i]}</p></article>`).join("")}</div>
     </section>
-    <section class="section">
-      <div class="section-head"><p class="eyebrow">Tous corps de métier</p><h2>Types de travaux</h2><p>Quel que soit votre projet, TravauxCorse qualifie votre demande et vous oriente vers les bonnes entreprises.</p></div>
-      <div class="work-grid">${activeTrades().slice(0, 16).map((trade) => workCard(trade, trade.includes("énergétiques") || trade.includes("Isolation") || trade.includes("Climatisation"))).join("")}</div>
-    </section>
     ${renderEnergyIntro()}
   `;
 }
