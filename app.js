@@ -157,7 +157,7 @@ const seed = {
     headline: "Trouvez le bon accompagnement pour vos travaux en Corse",
     intro: "TravauxCorse qualifie votre projet, vous oriente vers des entreprises adaptées et facilite l'achat direct des fournitures auprès de partenaires sélectionnés.",
     contactEmail: "contact.travauxcorse@gmail.com",
-    contactPhone: "04 95 00 00 00",
+    contactPhone: "07 71 81 50 90",
     footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.",
     statCompanies: "+150",
     statRequests: "+500",
@@ -225,6 +225,7 @@ function normalizeState(next) {
     if (!Array.isArray(next[key])) next[key] = structuredClone(seed[key]);
   });
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
+  if (next.siteSettings.contactPhone === "04 95 00 00 00") next.siteSettings.contactPhone = seed.siteSettings.contactPhone;
   if (next.siteSettings.contactEmail === "contact@travauxcorse.fr") next.siteSettings.contactEmail = seed.siteSettings.contactEmail;
   next.customTrades = next.customTrades?.length ? next.customTrades : structuredClone(trades);
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
@@ -303,13 +304,7 @@ function renderHeader() {
 }
 
 function renderFooter() {
-  return `<footer class="site-footer">
-    <div><strong>${escapeHtml(state.siteSettings.brandTop)}${escapeHtml(state.siteSettings.brandBottom)}</strong><p>${escapeHtml(state.siteSettings.footerText)}</p><p>${escapeHtml(state.siteSettings.contactEmail)} · ${escapeHtml(state.siteSettings.contactPhone)}</p></div>
-    <div><strong>Services</strong>${state.page === "home" ? "" : '<button data-page="request">Déposer une demande</button>'}<button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button><button data-page="partner">Devenir artisan partenaire</button></div>
-    <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><a class="footer-admin-link" href="/admin/">Administration</a></div>
-    <p class="legal">TravauxCorse qualifie les projets et oriente les clients vers des entreprises adaptées. Les fournitures peuvent être achetées directement par le client auprès de fournisseurs partenaires selon le projet.</p>
-    <div class="company-identity"><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p><p>Contact : <a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a></p></details></div>
-  </footer>`;
+  return `<footer class="tc-footer"><p class="tc-footer-contact"><a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a><span aria-hidden="true"> · </span><a href="tel:+33771815090">07 71 81 50 90</a></p><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p></details></footer>`;
 }
 
 function renderPage() {

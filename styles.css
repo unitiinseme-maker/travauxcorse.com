@@ -1333,3 +1333,13 @@ body,.editorial-page{background:#f5f7fa}
 .content-cover{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;margin-bottom:18px}
 @media(max-width:850px){.content-admin-grid{grid-template-columns:1fr}.content-admin-grid>aside{max-height:330px;overflow:auto}.content-admin-grid>div{padding:16px}}
 @media(max-width:600px){.trade-choices,.editor-images{grid-template-columns:1fr}.editor-toolbar>button{width:100%}}
+
+/* Compact footer shared by application, editorial pages and generated content. */
+.tc-footer{background:#071827;color:#dce7ef;border-top:1px solid #264050;padding:28px max(20px,calc((100% - 1272px)/2));font-size:14px;line-height:1.7}
+.tc-footer p{margin:0 0 10px;max-width:1000px}.tc-footer p:last-child{margin-bottom:0}
+.tc-footer-contact{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.tc-footer a{color:#fff;text-decoration:none;overflow-wrap:anywhere}.tc-footer a:hover{text-decoration:underline}
+.tc-footer strong{color:#fff}.tc-footer details{margin-top:4px}.tc-footer summary{color:#fff;cursor:pointer;min-height:44px;padding:10px 0;font-weight:700}
+.tc-footer details p{color:#c6d4df}.tc-footer a:focus-visible,.tc-footer summary:focus-visible{outline:2px solid #f28c00;outline-offset:4px}
+.auth-choice{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:760px){.auth-choice{grid-template-columns:1fr}.tc-footer{padding:24px 20px}}

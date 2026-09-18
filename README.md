@@ -21,7 +21,7 @@ L’accueil et la première étape de la demande proposent toutes les catégorie
 
 ## Administration des réalisations et guides
 
-Accès : `/admin/`, ou **Administration** dans le pied de page. Les onglets **Réalisations** et **Conseils & guides** du portail historique conduisent aussi à cet éditeur.
+Accès : **Connexion → Je suis administrateur → Éditeur du site** pour retrouver tous les outils. Les publications restent également accessibles à `/admin/`. Les onglets **Réalisations** et **Conseils & guides** du portail historique conduisent aussi à cet éditeur.
 
 L’éditeur permet de créer, modifier, prévisualiser, enregistrer un brouillon, publier, retirer du site et supprimer un contenu. Les six guides existants sont repris. Jusqu’à quatre photos JPG/PNG/WebP sont réduites dans le navigateur ; chaque photo peut recevoir une légende Avant/Après. Les pages publiées, les listes et le sitemap sont générés ensemble dans un commit GitHub ; le déploiement Vercel rend ensuite la version publique. Aucun compte de démonstration n’autorise une publication.
 
