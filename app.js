@@ -297,19 +297,13 @@ function render() {
 }
 
 function renderHeader() {
-  const links = [["home", "Accueil"], ["request", "Déposer une demande"], ["energy", "Travaux énergétiques"], ["advice", "Conseils & guides"], ["references", "Réalisations"], ["suppliers", "Nos partenaires"], ["partner", "Devenir artisan partenaire"], ["login", "Connexion"]];
-  return `<header class="site-header">
-    <a class="brand" href="#" data-page="home"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a>
-    <button class="menu-button secondary" data-menu>Menu</button>
-    <nav class="main-nav" data-nav>${links.map(([page, label]) => `<button class="${state.page === page ? "active" : ""}" data-page="${page}">${label}</button>`).join("")}</nav>
-    <button class="primary" data-page="request">Déposer une demande</button>
-  </header>`;
+  return `<header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" ${state.page === "home" ? 'aria-current="page"' : ""}>Accueil</a><a href="/#energy" data-page="energy" ${state.page === "energy" ? 'aria-current="page"' : ""}>Travaux énergétiques</a><a href="/conseils/" data-page="advice" ${state.page === "advice" ? 'aria-current="page"' : ""}>Conseils &amp; guides</a><a href="/realisations/" data-page="references" ${state.page === "references" ? 'aria-current="page"' : ""}>Réalisations</a><a href="/#suppliers" data-page="suppliers" ${state.page === "suppliers" ? 'aria-current="page"' : ""}>Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/#request">Déposer une demande</a><a data-page="login" href="/#login">Connexion</a></div></header>`;
 }
 
 function renderFooter() {
   return `<footer class="site-footer">
     <div><strong>${escapeHtml(state.siteSettings.brandTop)}${escapeHtml(state.siteSettings.brandBottom)}</strong><p>${escapeHtml(state.siteSettings.footerText)}</p><p>${escapeHtml(state.siteSettings.contactEmail)} · ${escapeHtml(state.siteSettings.contactPhone)}</p></div>
-    <div><strong>Services</strong><button data-page="request">Déposer une demande</button><button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button></div>
+    <div><strong>Services</strong><button data-page="request">Déposer une demande</button><button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button><button data-page="partner">Devenir artisan partenaire</button></div>
     <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><button data-page="admin">Administration</button></div>
     <p class="legal">TravauxCorse qualifie les projets et oriente les clients vers des entreprises adaptées. Les fournitures peuvent être achetées directement par le client auprès de fournisseurs partenaires selon le projet.</p>
     <div class="company-identity"><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p><p>Contact : <a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a></p></details></div>
