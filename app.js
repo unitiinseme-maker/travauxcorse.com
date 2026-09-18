@@ -169,7 +169,7 @@ const seed = {
     { role: "client", email: "sophie@example.fr", name: "Sophie P.", password: "client" },
     { role: "artisan", email: "artisan@travauxcorse.fr", name: "Entreprise partenaire", password: "artisan", artisanId: "art-5" }
   ],
-  requestDraft: { step: 0, category: "", title: "", description: "", commune: "", delay: "Sous 1 mois", budget: "", property: "", surface: "", files: "", name: "", email: "", phone: "" },
+  requestDraft: { step: 0, category: "", categories: [], title: "", description: "", commune: "", delay: "Sous 1 mois", budget: "", property: "", surface: "", files: "", name: "", email: "", phone: "" },
   filters: { q: "", trade: "", zone: "", energy: false, urgent: false, verified: true },
   supplierPartners: [
     { id: "sup-1", name: "Clim Distribution Corse", family: "Chauffage / Climatisation", zone: "Bastia · Ajaccio", badge: "Matériel pro", text: "Climatisations réversibles, pompes à chaleur air/air, accessoires de pose et consommables.", benefits: ["Devis client direct", "Références compatibles RGE", "Disponibilité stock Corse"] },
@@ -218,6 +218,8 @@ function loadState() {
 
 function normalizeState(next) {
   next.requestDraft = { ...structuredClone(seed.requestDraft), ...(next.requestDraft || {}) };
+  next.requestDraft.categories = selectedCategories(next.requestDraft);
+  next.requestDraft.category = next.requestDraft.categories.join(" · ");
   next.filters = { ...structuredClone(seed.filters), ...(next.filters || {}) };
   ["accounts", "requests", "artisans", "partners", "supplierPartners"].forEach((key) => {
     if (!Array.isArray(next[key])) next[key] = structuredClone(seed[key]);
@@ -304,7 +306,7 @@ function renderFooter() {
   return `<footer class="site-footer">
     <div><strong>${escapeHtml(state.siteSettings.brandTop)}${escapeHtml(state.siteSettings.brandBottom)}</strong><p>${escapeHtml(state.siteSettings.footerText)}</p><p>${escapeHtml(state.siteSettings.contactEmail)} · ${escapeHtml(state.siteSettings.contactPhone)}</p></div>
     <div><strong>Services</strong>${state.page === "home" ? "" : '<button data-page="request">Déposer une demande</button>'}<button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button><button data-page="partner">Devenir artisan partenaire</button></div>
-    <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><button data-page="admin">Administration</button></div>
+    <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><a class="footer-admin-link" href="/admin/">Administration</a></div>
     <p class="legal">TravauxCorse qualifie les projets et oriente les clients vers des entreprises adaptées. Les fournitures peuvent être achetées directement par le client auprès de fournisseurs partenaires selon le projet.</p>
     <div class="company-identity"><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p><p>Contact : <a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a></p></details></div>
   </footer>`;
@@ -348,12 +350,14 @@ function renderHome() {
       </div>
       <div class="quick-card" id="deposer">
         <h2>Commencez en 30 secondes</h2>
-        <label>Type de travaux</label>
-        <select data-home-category>${activeTrades().slice(0, 11).map((t) => `<option>${t}</option>`).join("")}</select>
+        <details class="trade-picker" data-home-picker><summary>Types de travaux <span data-trade-count>${selectedCategories(state.requestDraft).length ? `(${selectedCategories(state.requestDraft).length} sélectionnés)` : "— choisir"}</span></summary>
+          <p id="home-trade-help">Cochez un ou plusieurs métiers.</p>${renderTradeChoices("home")}
+        </details>
+        <p class="form-error" data-home-error role="alert"></p>
         <label>Commune du chantier</label>
-        <input data-home-commune placeholder="Ex : Bastia" />
+        <input data-home-commune value="${escapeHtml(state.requestDraft.commune)}" placeholder="Ex : Bastia" />
         <label>Délai</label>
-        <select data-home-delay><option>Urgent</option><option>Sous 1 mois</option><option>Sous 3 mois</option><option>Pas de délai précis</option></select>
+        <select data-home-delay>${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map(x => `<option ${state.requestDraft.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select>
         <button class="primary" data-start-request>Déposer une demande</button>
         <p class="muted">Gratuit, sans engagement, réponse rapide.</p>
       </div>
@@ -397,6 +401,22 @@ function renderEnergyIntro() {
   </section>`;
 }
 
+function selectedCategories(draft) {
+  const values = Array.isArray(draft.categories) ? draft.categories : (draft.category ? [draft.category] : []);
+  // Migrate older one-category drafts without losing their selected trade.
+  const legacy = !values.length && draft.category ? [draft.category] : values;
+  return [...new Set(legacy.filter(value => typeof value === "string" && value.trim()).map(value => value.trim()))];
+}
+function setDraftCategories(values) {
+  state.requestDraft.categories = [...new Set(values)];
+  state.requestDraft.category = state.requestDraft.categories.join(" · ");
+}
+function renderTradeChoices(context) {
+  const selected = selectedCategories(state.requestDraft);
+  const choices = [...new Set([...activeTrades(), ...selected])];
+  return `<fieldset class="trade-choices ${context === "home" ? "compact" : ""}"><legend class="sr-only">Catégories de travaux — plusieurs choix possibles</legend>${choices.map(t => `<label><input type="checkbox" data-trade-choice="${context}" value="${escapeHtml(t)}" ${selected.includes(t) ? "checked" : ""}><span>${escapeHtml(t)}</span></label>`).join("")}</fieldset>`;
+}
+
 function renderRequest() {
   const d = state.requestDraft;
   const steps = ["Type de travaux", "Votre projet", "Votre bien", "Photos & docs", "Coordonnées", "Confirmation"];
@@ -412,7 +432,7 @@ function renderRequest() {
 
 function renderRequestStep() {
   const d = state.requestDraft;
-  if (d.step === 0) return `<h2>Type de travaux</h2><p>Sélectionnez la catégorie correspondant à votre besoin.</p><div class="choice-grid">${activeTrades().map((t) => `<button type="button" class="${d.category === t ? "selected" : ""}" data-category-choice="${escapeHtml(t)}">${t}</button>`).join("")}</div>${stepActions()}`;
+  if (d.step === 0) return `<h2>Types de travaux</h2><p>Cochez tous les métiers nécessaires à votre projet.</p>${renderTradeChoices("request")}${stepActions()}`;
   if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
   if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
   if (d.step === 3) return `<h2>Photos & documents</h2><p>Cette étape est facultative : indiquez simplement les documents disponibles. Aucun fichier n’est joint ici ; vous pourrez échanger vos photos et plans lors de la prise de contact. Ne saisissez pas de données confidentielles.</p><label>Documents disponibles<textarea name="files" placeholder="Photos, plans, diagnostics, contraintes d’accès...">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
@@ -421,7 +441,7 @@ function renderRequestStep() {
 }
 
 function labelFor(key) {
-  return ({ category: "Catégorie", title: "Projet", commune: "Commune", delay: "Délai", budget: "Budget", property: "Bien", surface: "Surface", name: "Nom", email: "Email", phone: "Téléphone" })[key] || key;
+  return ({ category: "Catégories de travaux", title: "Projet", commune: "Commune", delay: "Délai", budget: "Budget", property: "Bien", surface: "Surface", name: "Nom", email: "Email", phone: "Téléphone" })[key] || key;
 }
 
 function stepActions() {
@@ -762,14 +782,20 @@ function bind() {
     });
   }
   document.querySelector("[data-start-request]")?.addEventListener("click", () => {
-    state.requestDraft.category = document.querySelector("[data-home-category]")?.value || "";
+    setDraftCategories([...document.querySelectorAll('[data-trade-choice="home"]:checked')].map(el => el.value));
+    if (!state.requestDraft.categories.length) {
+      document.querySelector("[data-home-error]").textContent = "Choisissez au moins un métier pour continuer.";
+      document.querySelector("[data-home-picker]").open = true;
+      document.querySelector('[data-trade-choice="home"]')?.focus();
+      return;
+    }
     state.requestDraft.commune = document.querySelector("[data-home-commune]")?.value || "";
     state.requestDraft.delay = document.querySelector("[data-home-delay]")?.value || "Sous 1 mois";
     state.requestDraft.step = 1;
     setPage("request");
   });
   document.querySelectorAll("[data-request-category]").forEach((el) => el.addEventListener("click", () => {
-    state.requestDraft.category = el.dataset.requestCategory;
+    setDraftCategories([...selectedCategories(state.requestDraft), el.dataset.requestCategory]);
     if (el.dataset.energySub) state.requestDraft.title = el.dataset.energySub;
     state.requestDraft.step = 1;
     setPage("request");
@@ -777,6 +803,15 @@ function bind() {
   bindRequest();
   bindFilters();
   bindForms();
+  document.querySelectorAll("[data-trade-choice]").forEach(el => el.addEventListener("change", () => {
+    setDraftCategories([...document.querySelectorAll(`[data-trade-choice="${el.dataset.tradeChoice}"]:checked`)].map(box => box.value));
+    document.querySelectorAll("[data-trade-count]").forEach(node => { node.textContent = `(${state.requestDraft.categories.length} sélectionnés)`; });
+    const error = document.querySelector("[data-home-error]"); if (error) error.textContent = "";
+    saveState();
+  }));
+  for (const [selector, key] of [["[data-home-commune]", "commune"], ["[data-home-delay]", "delay"]]) {
+    document.querySelector(selector)?.addEventListener("input", event => { state.requestDraft[key] = event.target.value; saveState(); });
+  }
   window.TravauxCorsePortal?.bind(state, { render, saveState, setPage, uid, today });
 }
 
@@ -788,7 +823,7 @@ function captureRequestDraft() {
 
 function validateRequestStep() {
   const d = state.requestDraft;
-  if (d.step === 0 && !d.category) {
+  if (d.step === 0 && !selectedCategories(d).length) {
     alert("Choisissez un type de travaux pour continuer.");
     return false;
   }
@@ -806,7 +841,6 @@ function bindRequest() {
     saveState();
     render();
   }));
-  document.querySelectorAll("[data-category-choice]").forEach((el) => el.addEventListener("click", () => { state.requestDraft.category = el.dataset.categoryChoice; saveState(); render(); }));
   document.querySelector("[data-prev]")?.addEventListener("click", () => { captureRequestDraft(); state.requestDraft.step = Math.max(0, state.requestDraft.step - 1); saveState(); render(); });
   document.querySelector("[data-request-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -838,7 +872,7 @@ function sendProjectByEmail(draft, sourceForm) {
     name: draft.name,
     email: draft.email,
     Téléphone: draft.phone,
-    Métier: draft.category,
+    "Métiers demandés": selectedCategories(draft).join(" · "),
     Projet: draft.title,
     Commune: draft.commune,
     Délai: draft.delay,
@@ -985,3 +1019,4 @@ document.addEventListener("keydown", (event) => {
   }
 });
 render();
+
