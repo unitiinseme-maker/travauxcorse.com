@@ -303,7 +303,7 @@ function renderHeader() {
 function renderFooter() {
   return `<footer class="site-footer">
     <div><strong>${escapeHtml(state.siteSettings.brandTop)}${escapeHtml(state.siteSettings.brandBottom)}</strong><p>${escapeHtml(state.siteSettings.footerText)}</p><p>${escapeHtml(state.siteSettings.contactEmail)} · ${escapeHtml(state.siteSettings.contactPhone)}</p></div>
-    <div><strong>Services</strong><button data-page="request">Déposer une demande</button><button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button><button data-page="partner">Devenir artisan partenaire</button></div>
+    <div><strong>Services</strong>${state.page === "home" ? "" : '<button data-page="request">Déposer une demande</button>'}<button data-page="suppliers">Nos partenaires</button><button data-page="energy">Travaux énergétiques</button><button data-page="partner">Devenir artisan partenaire</button></div>
     <div><strong>Espaces</strong><button data-page="client">Espace client</button><button data-page="artisanSpace">Espace artisan</button><button data-page="admin">Administration</button></div>
     <p class="legal">TravauxCorse qualifie les projets et oriente les clients vers des entreprises adaptées. Les fournitures peuvent être achetées directement par le client auprès de fournisseurs partenaires selon le projet.</p>
     <div class="company-identity"><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p><p>Contact : <a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a></p></details></div>
@@ -338,12 +338,13 @@ function renderPage() {
 
 function renderHome() {
   return `
+    <div class="page-section home-page">
     <section class="hero">
       <div class="hero-copy">
         <p class="eyebrow">${escapeHtml(state.siteSettings.tagline)}</p>
         <h1>${escapeHtml(state.siteSettings.headline)}</h1>
         <p>${escapeHtml(state.siteSettings.intro)}</p>
-      <div class="hero-actions">${cta("Déposer une demande", "request", "primary")}${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
+      <div class="hero-actions">${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
       </div>
       <div class="quick-card" id="deposer">
         <h2>Commencez en 30 secondes</h2>
@@ -366,6 +367,7 @@ function renderHome() {
       <div class="steps">${["Décrivez votre projet", "La demande est vérifiée", "Nous proposons les entreprises", "Vous gardez la maîtrise"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Indiquez votre besoin, votre commune, votre délai et votre budget.", "TravauxCorse analyse votre demande avant transmission.", "Nous orientons votre projet vers des entreprises adaptées.", "Vous échangez, comparez et achetez vos fournitures en direct si besoin."][i]}</p></article>`).join("")}</div>
     </section>
     ${renderEnergyIntro()}
+    </div>
   `;
 }
 
@@ -391,7 +393,7 @@ function renderEnergyIntro() {
     <h2>Vos travaux énergétiques en Corse</h2>
     <p>Isolation, menuiseries performantes, climatisation réversible, pompe à chaleur, ventilation, eau chaude sanitaire ou photovoltaïque : TravauxCorse vous aide à trouver les bons professionnels.</p>
     <div class="energy-list">${energyTypes.slice(0, 6).map((e) => `<article><h3>${e.title}</h3><p>${e.text}</p></article>`).join("")}</div>
-    <div class="hero-actions">${cta("Voir les travaux énergétiques", "energy", "primary")}${cta("Déposer une demande énergétique", "request", "secondary")}</div>
+    <div class="hero-actions">${cta("Voir les travaux énergétiques", "energy", "primary")}</div>
   </section>`;
 }
 
