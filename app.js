@@ -304,7 +304,7 @@ function renderHeader() {
 }
 
 function renderFooter() {
-  return `<footer class="tc-footer"><p class="tc-footer-contact"><a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a><span aria-hidden="true"> · </span><a href="tel:+33771815090">07 71 81 50 90</a></p><p>TravauxCorse est exploité par <strong>UNITI INSEME LIMITED</strong>.</p><details><summary>Informations sur l’exploitant</summary><p>Société de droit irlandais (Private Company Limited by Shares), immatriculée en Irlande sous le numéro 819948.</p><p>Siège social : Pod 2, The Old Station House, 15A Main Street, Blackrock, Co. Dublin, A94 T8P8, Irlande.</p></details></footer>`;
+  return `<footer class="tc-footer"><div class="tc-footer-inner"><p class="tc-footer-copyright">© 2026 UNITI INSEME LIMITED</p><nav class="tc-footer-links" aria-label="Informations légales"><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cookies/">Cookies</a></nav></div></footer>`;
 }
 
 function renderPage() {

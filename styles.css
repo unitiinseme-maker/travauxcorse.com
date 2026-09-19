@@ -1334,12 +1334,14 @@ body,.editorial-page{background:#f5f7fa}
 @media(max-width:850px){.content-admin-grid{grid-template-columns:1fr}.content-admin-grid>aside{max-height:330px;overflow:auto}.content-admin-grid>div{padding:16px}}
 @media(max-width:600px){.trade-choices,.editor-images{grid-template-columns:1fr}.editor-toolbar>button{width:100%}}
 
-/* Compact footer shared by application, editorial pages and generated content. */
-.tc-footer{background:#071827;color:#dce7ef;border-top:1px solid #264050;padding:28px max(20px,calc((100% - 1272px)/2));font-size:14px;line-height:1.7}
-.tc-footer p{margin:0 0 10px;max-width:1000px}.tc-footer p:last-child{margin-bottom:0}
-.tc-footer-contact{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
-.tc-footer a{color:#fff;text-decoration:none;overflow-wrap:anywhere}.tc-footer a:hover{text-decoration:underline}
-.tc-footer strong{color:#fff}.tc-footer details{margin-top:4px}.tc-footer summary{color:#fff;cursor:pointer;min-height:44px;padding:10px 0;font-weight:700}
-.tc-footer details p{color:#c6d4df}.tc-footer a:focus-visible,.tc-footer summary:focus-visible{outline:2px solid #f28c00;outline-offset:4px}
+/* Footer based on the supplied reference, identical on every page. */
+.tc-footer{background:#061c29;color:#f1f4f5;padding:clamp(36px,6vw,76px) clamp(24px,6vw,84px) clamp(32px,5vw,64px);font-family:Montserrat,ui-sans-serif,system-ui,sans-serif}
+.tc-footer-inner{max-width:1272px;margin:0 auto;border-top:2px solid #36505e;padding-top:clamp(32px,5vw,56px)}
+.tc-footer-copyright{margin:0 0 36px;color:#f1f4f5;font-size:clamp(15px,1.5vw,21px);font-weight:400;line-height:1.6;letter-spacing:.055em}
+.tc-footer-links{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.tc-footer-links a{display:inline-flex;align-items:center;min-height:44px;color:#f1f4f5;text-decoration:none;text-transform:uppercase;font-size:clamp(15px,1.5vw,21px);font-weight:400;line-height:1.5;letter-spacing:.08em}
+.tc-footer-links a:hover{text-decoration:underline;text-underline-offset:6px}
+.tc-footer-links a:focus-visible{outline:2px solid #f28c00;outline-offset:6px}
+.legal-body{margin-top:32px;max-width:1000px}.legal-body a{color:#0c567b;overflow-wrap:anywhere;text-underline-offset:3px}
 .auth-choice{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media(max-width:760px){.auth-choice{grid-template-columns:1fr}.tc-footer{padding:24px 20px}}
+@media(max-width:760px){.auth-choice{grid-template-columns:1fr}.tc-footer{padding:40px 24px}.tc-footer-copyright{margin-bottom:28px}}
