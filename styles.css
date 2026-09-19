@@ -1234,11 +1234,18 @@ html,body{max-width:100%;overflow-x:hidden}
 .tc-header .tc-menu{display:none;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid #dce2e6;background:#f7f8f9;color:#071827;border-radius:10px;font-size:14px;font-weight:800}
 .tc-header a:focus-visible,.tc-header button:focus-visible,.tc-footer-services a:focus-visible{outline:3px solid #a65b00;outline-offset:4px}
 .tc-footer-services{display:grid;gap:10px;min-width:210px}.tc-footer-services strong{color:#fff}.tc-footer-services a{text-decoration:none;line-height:1.5}.tc-footer-services a:hover{text-decoration:underline}
-@media(max-width:1399px){
+@media(max-width:767px){
 .tc-header{grid-template-columns:minmax(0,1fr) auto 230px;gap:18px}
 .tc-header .tc-menu{display:flex}
 .tc-header .tc-nav{display:none;grid-column:1/-1;grid-row:2;justify-content:flex-start;flex-wrap:wrap;border-top:1px solid #e8edf1;padding-top:12px}
 .tc-header .tc-nav.open{display:flex}
+}
+/* Keep navigation visible on laptops and tablets; use a second row when needed. */
+@media(min-width:768px) and (max-width:1399px){
+.tc-header{grid-template-columns:minmax(0,1fr) 230px;gap:12px 24px}
+.tc-header .tc-menu{display:none}
+.tc-header .tc-actions{grid-column:2;grid-row:1}
+.tc-header .tc-nav,.tc-header .tc-nav.open{display:flex;grid-column:1/-1;grid-row:2;flex-wrap:wrap;justify-content:center;gap:4px}
 }
 @media(max-width:600px){
 .tc-header{grid-template-columns:minmax(0,1fr) auto;padding:12px 16px;gap:12px}
