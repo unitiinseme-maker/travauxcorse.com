@@ -1,30 +1,41 @@
-<!doctype html>
-<html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#071827" />
-    <meta name="description" content="TravauxCorse qualifie votre projet et vous met en relation avec des artisans et fournisseurs partenaires partout en Corse." />
-    <meta name="robots" content="index,follow" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="fr_FR" />
-    <meta property="og:title" content="TravauxCorse — Vos travaux, notre priorité" />
-    <meta property="og:description" content="Un accompagnement local pour trouver les bons professionnels et organiser vos travaux en Corse." />
-    <title>TravauxCorse | Artisans et projets de travaux en Corse</title>
-    <link rel="canonical" href="https://travauxcorse.com/" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script type="application/ld+json">
-      {"@context":"https://schema.org","@type":"ProfessionalService","name":"TravauxCorse","legalName":"UNITI INSEME LIMITED","url":"https://travauxcorse.com/","areaServed":{"@type":"AdministrativeArea","name":"Corse"},"description":"Plateforme locale de qualification de projets et de mise en relation avec des professionnels du bâtiment en Corse."}
-    </script>
-  </head>
-  <body>
-    <a class="skip-link" href="#main-content">Aller au contenu</a>
-    <div id="app"></div>
-    <script src="./portal.js"></script>
-    <script defer src="./navigation.js"></script>
-    <script defer src="./app.js"></script>
-  </body>
-</html>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TravauxCorse | Artisans et travaux en Corse</title><meta name="description" content="Déposez votre projet de travaux en Corse. TravauxCorse facilite la mise en relation avec les artisans et fournisseurs en Haute-Corse et Corse-du-Sud."><meta name="theme-color" content="#24211e"><link rel="canonical" href="https://travauxcorse.com/"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><meta property="og:type" content="website"><meta property="og:locale" content="fr_FR"><meta property="og:site_name" content="TravauxCorse"><meta property="og:title" content="TravauxCorse | Artisans et travaux en Corse"><meta property="og:description" content="Déposez votre projet de travaux en Corse. TravauxCorse facilite la mise en relation avec les artisans et fournisseurs en Haute-Corse et Corse-du-Sud."><meta property="og:url" content="https://travauxcorse.com/"><meta property="og:image" content="https://travauxcorse.com/social-card.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><link rel="stylesheet" href="/styles.css"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"TravauxCorse","legalName":"UNITI INSEME LIMITED","url":"https://travauxcorse.com","email":"contact.travauxcorse@gmail.com","telephone":"+33771815090","areaServed":["Haute-Corse","Corse-du-Sud"],"description":"Plateforme de mise en relation entre particuliers, professionnels du bâtiment et fournisseurs en Corse."}</script></head><body><a class="skip-link" href="#main-content">Aller au contenu</a><noscript><p class="notice">Activez JavaScript pour utiliser les formulaires. Vous pouvez aussi nous joindre au <a href="tel:+33771815090">07 71 81 50 90</a> ou à <a href="mailto:contact.travauxcorse@gmail.com">contact.travauxcorse@gmail.com</a>.</p></noscript><div id="app"><div class="site-shell"><header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>TRAVAUX</span>CORSE<small>Vos travaux, notre priorité</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" aria-current="page">Accueil</a><a href="/travaux-energetiques/" data-page="energy" >Travaux énergétiques</a><a href="/conseils/" data-page="advice" >Conseils &amp; guides</a><a href="/realisations/" data-page="references" >Réalisations</a><a href="/partenaires/" data-page="suppliers" >Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/deposer-une-demande/">Déposer une demande</a><a data-page="login" href="/#login">Connexion</a></div></header><main id="main-content">
+    <div class="page-section home-page">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Vos travaux, notre priorité</p>
+        <h1>Votre projet de travaux en Corse commence ici</h1>
+        <p>Particuliers, artisans et fournisseurs : TravauxCorse vous met en relation pour organiser vos travaux en Haute-Corse et en Corse-du-Sud, du premier besoin au choix des matériaux.</p>
+      <div class="hero-actions"><a class="secondary link-button" href="/partenaires/" data-page="suppliers">Découvrir nos partenaires</a></div>
+      </div>
+      <div class="quick-card" id="deposer">
+        <h2>Parlez-nous de votre projet</h2>
+        <details class="trade-picker" data-home-picker><summary>Types de travaux <span data-trade-count>— choisir</span></summary>
+          <p id="home-trade-help">Cochez un ou plusieurs métiers.</p><fieldset class="trade-choices compact"><legend class="sr-only">Catégories de travaux — plusieurs choix possibles</legend><label><input type="checkbox" data-trade-choice="home" value="Maçonnerie &amp; Gros œuvre" ><span>Maçonnerie &amp; Gros œuvre</span></label><label><input type="checkbox" data-trade-choice="home" value="Terrassement &amp; VRD" ><span>Terrassement &amp; VRD</span></label><label><input type="checkbox" data-trade-choice="home" value="Toiture &amp; Charpente" ><span>Toiture &amp; Charpente</span></label><label><input type="checkbox" data-trade-choice="home" value="Électricité" ><span>Électricité</span></label><label><input type="checkbox" data-trade-choice="home" value="Plomberie &amp; Sanitaire" ><span>Plomberie &amp; Sanitaire</span></label><label><input type="checkbox" data-trade-choice="home" value="Climatisation &amp; Chauffage" ><span>Climatisation &amp; Chauffage</span></label><label><input type="checkbox" data-trade-choice="home" value="Ventilation &amp; VMC" ><span>Ventilation &amp; VMC</span></label><label><input type="checkbox" data-trade-choice="home" value="Isolation &amp; Rénovation énergétique" ><span>Isolation &amp; Rénovation énergétique</span></label><label><input type="checkbox" data-trade-choice="home" value="Menuiserie" ><span>Menuiserie</span></label><label><input type="checkbox" data-trade-choice="home" value="Plâtrerie" ><span>Plâtrerie</span></label><label><input type="checkbox" data-trade-choice="home" value="Peinture" ><span>Peinture</span></label><label><input type="checkbox" data-trade-choice="home" value="Carrelage" ><span>Carrelage</span></label><label><input type="checkbox" data-trade-choice="home" value="Façade" ><span>Façade</span></label><label><input type="checkbox" data-trade-choice="home" value="Serrurerie" ><span>Serrurerie</span></label><label><input type="checkbox" data-trade-choice="home" value="Étanchéité" ><span>Étanchéité</span></label><label><input type="checkbox" data-trade-choice="home" value="Piscine" ><span>Piscine</span></label><label><input type="checkbox" data-trade-choice="home" value="Paysagisme" ><span>Paysagisme</span></label><label><input type="checkbox" data-trade-choice="home" value="Photovoltaïque" ><span>Photovoltaïque</span></label><label><input type="checkbox" data-trade-choice="home" value="Domotique" ><span>Domotique</span></label><label><input type="checkbox" data-trade-choice="home" value="Alarme &amp; Sécurité" ><span>Alarme &amp; Sécurité</span></label><label><input type="checkbox" data-trade-choice="home" value="Vidéosurveillance" ><span>Vidéosurveillance</span></label><label><input type="checkbox" data-trade-choice="home" value="Démolition" ><span>Démolition</span></label><label><input type="checkbox" data-trade-choice="home" value="Désamiantage" ><span>Désamiantage</span></label></fieldset>
+        </details>
+        <p class="form-error" data-home-error role="alert"></p>
+        <label for="home-commune">Commune du chantier</label>
+        <input id="home-commune" autocomplete="address-level2" maxlength="100" data-home-commune value="" placeholder="Ex : Bastia" />
+        <label for="home-delay">Délai</label>
+        <select id="home-delay" data-home-delay><option >Urgent</option><option selected>Sous 1 mois</option><option >Sous 3 mois</option><option >Pas de délai précis</option></select>
+        <button class="primary" data-start-request>Déposer une demande</button>
+        <p class="muted">Une demande gratuite, sans engagement.</p>
+      </div>
+    </section>
+    <section class="stats">
+      <article><strong>2</strong><span>Départements : Haute-Corse et Corse-du-Sud</span></article><article><strong>23</strong><span>Métiers pour votre projet</span></article><article><strong>Gratuit</strong><span>Dépôt de demande</span></article><article><strong>À votre rythme</strong><span>Vous comparez et choisissez</span></article>
+    </section>
+    <section class="band">
+      <p class="eyebrow">Simple et efficace</p>
+      <h2>Comment ça marche ?</h2>
+      <div class="steps"><article><span>01</span><h3>Vous déposez votre projet</h3><p>Particulier ou professionnel : précisez les travaux, la commune et vos attentes.</p></article><article><span>02</span><h3>TravauxCorse identifie les professionnels</h3><p>Votre demande est examinée pour rechercher les entreprises adaptées à votre besoin.</p></article><article><span>03</span><h3>L’artisan confirme son intervention</h3><p>Vous échangez sur le chantier, comparez les devis et choisissez votre entreprise.</p></article><article><span>04</span><h3>Le fournisseur prépare les matériaux</h3><p>Selon le projet, le partenaire fournit les matériaux. Vous pouvez aussi les acheter directement auprès de lui.</p></article></div>
+    </section>
+    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2><div class="trade-directory"><span>Maçonnerie &amp; Gros œuvre</span><span>Terrassement &amp; VRD</span><span>Toiture &amp; Charpente</span><span>Électricité</span><span>Plomberie &amp; Sanitaire</span><span>Climatisation &amp; Chauffage</span><span>Ventilation &amp; VMC</span><span>Isolation &amp; Rénovation énergétique</span><span>Menuiserie</span><span>Plâtrerie</span><span>Peinture</span><span>Carrelage</span><span>Façade</span><span>Serrurerie</span><span>Étanchéité</span><span>Piscine</span><span>Paysagisme</span><span>Photovoltaïque</span><span>Domotique</span><span>Alarme &amp; Sécurité</span><span>Vidéosurveillance</span><span>Démolition</span><span>Désamiantage</span></div></section>
+    <section class="energy-band">
+    <p class="eyebrow">Éco-rénovation</p>
+    <h2>Vos travaux énergétiques en Corse</h2>
+    <p>Isolation, menuiseries performantes, climatisation réversible, pompe à chaleur, ventilation, eau chaude sanitaire ou photovoltaïque : TravauxCorse vous aide à trouver les bons professionnels.</p>
+    <div class="energy-list"><article><h3>Isolation</h3><p>Combles, murs, planchers et isolation extérieure pour limiter les déperditions.</p></article><article><h3>Menuiseries performantes</h3><p>Fenêtres, volets et portes plus efficaces face au soleil, au vent et à l'humidité.</p></article><article><h3>Climatisation réversible</h3><p>Confort été et hiver avec une installation adaptée aux logements corses.</p></article><article><h3>Pompe à chaleur</h3><p>Air/air ou air/eau, une solution économique pour le chauffage et le confort.</p></article><article><h3>Ventilation / VMC</h3><p>Qualité de l'air intérieur, gestion de l'humidité et économies d'énergie.</p></article><article><h3>Photovoltaïque</h3><p>Production solaire, autoconsommation et étude de faisabilité locale.</p></article></div>
+    <div class="hero-actions"><a class="primary link-button" href="/travaux-energetiques/" data-page="energy">Voir les travaux énergétiques</a></div>
+  </section>
+    </div>
+  </main><footer class="tc-footer"><div class="tc-footer-inner"><p class="tc-footer-copyright">© 2026 UNITI INSEME LIMITED</p><nav class="tc-footer-links" aria-label="Informations légales"><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cookies/">Cookies</a></nav></div></footer></div></div><script defer src="/portal.js"></script><script defer src="/navigation.js"></script><script defer src="/app.js"></script></body></html>

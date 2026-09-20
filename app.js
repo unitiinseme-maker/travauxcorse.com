@@ -6,6 +6,32 @@ const byId = (items, id) => items.find((item) => item.id === id);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 
 const trades = [
+  "Maçonnerie & Gros œuvre",
+  "Terrassement & VRD",
+  "Toiture & Charpente",
+  "Électricité",
+  "Plomberie & Sanitaire",
+  "Climatisation & Chauffage",
+  "Ventilation & VMC",
+  "Isolation & Rénovation énergétique",
+  "Menuiserie",
+  "Plâtrerie",
+  "Peinture",
+  "Carrelage",
+  "Façade",
+  "Serrurerie",
+  "Étanchéité",
+  "Piscine",
+  "Paysagisme",
+  "Photovoltaïque",
+  "Domotique",
+  "Alarme & Sécurité",
+  "Vidéosurveillance",
+  "Démolition",
+  "Désamiantage"
+];
+
+const legacyTrades = [
   "Maçonnerie / Gros œuvre",
   "Terrassement / VRD",
   "Toiture / Charpente / Couverture",
@@ -154,8 +180,8 @@ const seed = {
     brandTop: "TRAVAUX",
     brandBottom: "CORSE",
     tagline: "Vos travaux, notre priorité",
-    headline: "Trouvez le bon accompagnement pour vos travaux en Corse",
-    intro: "TravauxCorse qualifie votre projet, vous oriente vers des entreprises adaptées et facilite l'achat direct des fournitures auprès de partenaires sélectionnés.",
+    headline: "Votre projet de travaux en Corse commence ici",
+    intro: "Particuliers, artisans et fournisseurs : TravauxCorse vous met en relation pour organiser vos travaux en Haute-Corse et en Corse-du-Sud, du premier besoin au choix des matériaux.",
     contactEmail: "contact.travauxcorse@gmail.com",
     contactPhone: "07 71 81 50 90",
     footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.",
@@ -198,18 +224,20 @@ const seed = {
   selectedArtisan: null
 };
 
+const routePaths = {home:"/",energy:"/travaux-energetiques/",suppliers:"/partenaires/",request:"/deposer-une-demande/",partner:"/devenir-partenaire/"};
+let requestAttachments = [];
 let state = loadState();
 const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
   if (route === "deposer") return "request";
-  return applicationPages.has(route) ? route : "home";
+  return applicationPages.has(route) ? route : (Object.entries(routePaths).find(([,path]) => path === (location.pathname || "/"))?.[0] || "home");
 }
 state.page = pageFromUrl();
 
 function loadState() {
   try {
-    const stored = localStorage.getItem("travaux-corse-state");
+    const stored = (typeof sessionStorage !== "undefined" && sessionStorage.getItem("travaux-corse-session")) || localStorage.getItem("travaux-corse-state");
     return normalizeState(stored ? { ...structuredClone(seed), ...JSON.parse(stored) } : structuredClone(seed));
   } catch {
     return normalizeState(structuredClone(seed));
@@ -227,7 +255,9 @@ function normalizeState(next) {
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
   if (next.siteSettings.contactPhone === "04 95 00 00 00") next.siteSettings.contactPhone = seed.siteSettings.contactPhone;
   if (next.siteSettings.contactEmail === "contact@travauxcorse.fr") next.siteSettings.contactEmail = seed.siteSettings.contactEmail;
-  next.customTrades = next.customTrades?.length ? next.customTrades : structuredClone(trades);
+  next.customTrades = Array.isArray(next.customTrades) && next.customTrades.length ? next.customTrades.filter(x => typeof x === "string" && x.trim()) : structuredClone(trades);
+  if (!next.tradeVersion) { next.customTrades = [...new Set([...trades, ...next.customTrades.filter(x => !legacyTrades.includes(x))])]; next.tradeVersion = 2; }
+  next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
   next.currentUserEmail = next.currentUserEmail || "";
   next.supplierPartners = next.supplierPartners?.length ? next.supplierPartners : structuredClone(seed.supplierPartners);
@@ -252,7 +282,9 @@ function normalizeState(next) {
 
 function saveState() {
   try {
-    localStorage.setItem("travaux-corse-state", JSON.stringify(state));
+    const publicState = {siteSettings:state.siteSettings,customTrades:state.customTrades,tradeVersion:state.tradeVersion,artisans:state.artisans,supplierPartners:state.supplierPartners};
+    localStorage.setItem("travaux-corse-state", JSON.stringify(publicState));
+    sessionStorage.setItem("travaux-corse-session", JSON.stringify(state));
   } catch {
     if (!document.querySelector("[data-storage-warning]")) {
       const warning = document.createElement("p");
@@ -274,14 +306,15 @@ function setPage(page) {
   }
   if (!applicationPages.has(page)) page = "home";
   state.page = page;
-  history.pushState(null, "", page === "home" ? location.pathname + location.search : "#" + page);
+  history.pushState(null, "", routePaths[page] || "/#" + page);
   saveState();
   render();
-  scrollTo({ top: 0, behavior: "smooth" });
+  document.querySelector("main")?.focus({preventScroll:true});
+  scrollTo({ top: 0, behavior: "instant" });
 }
 
 function cta(label, page, cls = "") {
-  return `<button class="${cls}" data-page="${page}">${label}</button>`;
+  return `<a class="${cls} link-button" href="${routePaths[page] || "/#"+page}" data-page="${page}">${label}</a>`;
 }
 
 function activeTrades() {
@@ -292,15 +325,17 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
-      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin", "partner"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
+      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
       <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
   bind();
+  document.title = ({home:"TravauxCorse | Artisans et travaux en Corse",request:"Déposer un projet de travaux | TravauxCorse",energy:"Rénovation énergétique en Corse | TravauxCorse",suppliers:"Fournisseurs et matériaux en Corse | TravauxCorse",login:"Connexion | TravauxCorse"})[state.page] || "Votre espace | TravauxCorse";
+  document.querySelector("main")?.setAttribute("tabindex", "-1");
 }
 
 function renderHeader() {
-  return `<header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" ${state.page === "home" ? 'aria-current="page"' : ""}>Accueil</a><a href="/#energy" data-page="energy" ${state.page === "energy" ? 'aria-current="page"' : ""}>Travaux énergétiques</a><a href="/conseils/" data-page="advice" ${state.page === "advice" ? 'aria-current="page"' : ""}>Conseils &amp; guides</a><a href="/realisations/" data-page="references" ${state.page === "references" ? 'aria-current="page"' : ""}>Réalisations</a><a href="/#suppliers" data-page="suppliers" ${state.page === "suppliers" ? 'aria-current="page"' : ""}>Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/#request">Déposer une demande</a><a data-page="login" href="/#login">Connexion</a></div></header>`;
+  return `<header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" ${state.page === "home" ? 'aria-current="page"' : ""}>Accueil</a><a href="/travaux-energetiques/" data-page="energy" ${state.page === "energy" ? 'aria-current="page"' : ""}>Travaux énergétiques</a><a href="/conseils/" data-page="advice" ${state.page === "advice" ? 'aria-current="page"' : ""}>Conseils &amp; guides</a><a href="/realisations/" data-page="references" ${state.page === "references" ? 'aria-current="page"' : ""}>Réalisations</a><a href="/partenaires/" data-page="suppliers" ${state.page === "suppliers" ? 'aria-current="page"' : ""}>Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/deposer-une-demande/">Déposer une demande</a><a data-page="login" href="/#login">Connexion</a></div></header>`;
 }
 
 function renderFooter() {
@@ -344,46 +379,35 @@ function renderHome() {
       <div class="hero-actions">${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
       </div>
       <div class="quick-card" id="deposer">
-        <h2>Commencez en 30 secondes</h2>
+        <h2>Parlez-nous de votre projet</h2>
         <details class="trade-picker" data-home-picker><summary>Types de travaux <span data-trade-count>${selectedCategories(state.requestDraft).length ? `(${selectedCategories(state.requestDraft).length} sélectionnés)` : "— choisir"}</span></summary>
           <p id="home-trade-help">Cochez un ou plusieurs métiers.</p>${renderTradeChoices("home")}
         </details>
         <p class="form-error" data-home-error role="alert"></p>
-        <label>Commune du chantier</label>
-        <input data-home-commune value="${escapeHtml(state.requestDraft.commune)}" placeholder="Ex : Bastia" />
-        <label>Délai</label>
-        <select data-home-delay>${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map(x => `<option ${state.requestDraft.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select>
+        <label for="home-commune">Commune du chantier</label>
+        <input id="home-commune" autocomplete="address-level2" maxlength="100" data-home-commune value="${escapeHtml(state.requestDraft.commune)}" placeholder="Ex : Bastia" />
+        <label for="home-delay">Délai</label>
+        <select id="home-delay" data-home-delay>${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map(x => `<option ${state.requestDraft.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select>
         <button class="primary" data-start-request>Déposer une demande</button>
-        <p class="muted">Gratuit, sans engagement, réponse rapide.</p>
+        <p class="muted">Une demande gratuite, sans engagement.</p>
       </div>
     </section>
     <section class="stats">
-      ${stat(state.siteSettings.statCompanies, "Entreprises & partenaires")}${stat(state.siteSettings.statRequests, "Demandes traitées")}${stat(state.siteSettings.statDepartments, "Départements couverts")}${stat(state.siteSettings.statCategories, "Catégories de travaux")}
+      ${stat("2", "Départements : Haute-Corse et Corse-du-Sud")}${stat(activeTrades().length, "Métiers pour votre projet")}${stat("Gratuit", "Dépôt de demande")}${stat("À votre rythme", "Vous comparez et choisissez")}
     </section>
     <section class="band">
       <p class="eyebrow">Simple et efficace</p>
       <h2>Comment ça marche ?</h2>
-      <div class="steps">${["Décrivez votre projet", "La demande est vérifiée", "Nous proposons les entreprises", "Vous gardez la maîtrise"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Indiquez votre besoin, votre commune, votre délai et votre budget.", "TravauxCorse analyse votre demande avant transmission.", "Nous orientons votre projet vers des entreprises adaptées.", "Vous échangez, comparez et achetez vos fournitures en direct si besoin."][i]}</p></article>`).join("")}</div>
+      <div class="steps">${["Vous déposez votre projet", "TravauxCorse identifie les professionnels", "L’artisan confirme son intervention", "Le fournisseur prépare les matériaux"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Particulier ou professionnel : précisez les travaux, la commune et vos attentes.", "Votre demande est examinée pour rechercher les entreprises adaptées à votre besoin.", "Vous échangez sur le chantier, comparez les devis et choisissez votre entreprise.", "Selon le projet, le partenaire fournit les matériaux. Vous pouvez aussi les acheter directement auprès de lui."][i]}</p></article>`).join("")}</div>
     </section>
+    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></section>
     ${renderEnergyIntro()}
     </div>
   `;
 }
 
 function stat(value, label) {
-  return `<article><strong>${value}</strong><span>${label}</span></article>`;
-}
-
-function workCard(title, energy = false) {
-  const desc = {
-    "Maçonnerie / Gros œuvre": "Gros œuvre, fondations, murs porteurs",
-    "Plomberie": "Installation, dépannage, rénovation sanitaire",
-    "Électricité": "Mise aux normes, installation, dépannage",
-    "Chauffage / Climatisation": "Pose de climatiseurs, entretien, dépannage",
-    "Toiture / Charpente / Couverture": "Couverture, charpente, étanchéité",
-    "Dépannage urgent": "Intervention rapide toutes urgences"
-  }[title] || "Demande qualifiée auprès d'entreprises locales";
-  return `<article class="work-card"><div>${energy ? `<span class="pill">Énergie</span>` : ""}<h3>${title}</h3><p>${desc}</p></div><button class="secondary" data-request-category="${escapeHtml(title)}">Faire une demande</button></article>`;
+  return `<article><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></article>`;
 }
 
 function renderEnergyIntro() {
@@ -416,23 +440,23 @@ function renderRequest() {
   const d = state.requestDraft;
   const steps = ["Type de travaux", "Votre projet", "Votre bien", "Photos & docs", "Coordonnées", "Confirmation"];
   return `<section class="page-section narrow">
-    <p class="eyebrow">Gratuit · Sans engagement · Réponse rapide</p>
+    <p class="eyebrow">Gratuit · Sans engagement</p>
     <h1>Déposer une demande</h1>
-    <p>Sans création de compte. À la dernière étape, une vérification antispam précède l’envoi par email à TravauxCorse. Votre brouillon est conservé dans ce navigateur pour vous permettre de revenir en arrière.</p>
+    <p>Sans création de compte. À la dernière étape, une vérification antispam précède l’envoi par email à TravauxCorse. Votre brouillon est conservé pendant cette session pour vous permettre de revenir en arrière.</p>
     <div class="progress"><div style="width:${(d.step / 5) * 100}%"></div></div>
     <div class="stepper">${steps.map((s, i) => `<button class="${d.step === i ? "active" : ""}" data-step="${i}"><span>${i + 1}</span>${s}</button>`).join("")}</div>
-    <form class="form-panel" data-request-form>${renderRequestStep()}</form>
+    <form class="form-panel" data-request-form><p data-request-error class="form-error" role="alert" tabindex="-1"></p>${renderRequestStep()}</form>
   </section>`;
 }
 
 function renderRequestStep() {
   const d = state.requestDraft;
   if (d.step === 0) return `<h2>Types de travaux</h2><p>Cochez tous les métiers nécessaires à votre projet.</p>${renderTradeChoices("request")}${stepActions()}`;
-  if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
-  if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
-  if (d.step === 3) return `<h2>Photos & documents</h2><p>Cette étape est facultative : indiquez simplement les documents disponibles. Aucun fichier n’est joint ici ; vous pourrez échanger vos photos et plans lors de la prise de contact. Ne saisissez pas de données confidentielles.</p><label>Documents disponibles<textarea name="files" placeholder="Photos, plans, diagnostics, contraintes d’accès...">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
-  if (d.step === 4) return `<h2>Vos coordonnées</h2><div class="form-grid"><label>Nom et prénom<input name="name" value="${escapeHtml(d.name)}" required /></label><label>Téléphone<input name="phone" value="${escapeHtml(d.phone)}" required /></label><label class="full">Email<input type="email" name="email" value="${escapeHtml(d.email)}" required /></label></div>${stepActions()}`;
-  return `<h2>Vérifiez votre demande</h2><div class="summary">${["category", "title", "commune", "delay", "budget", "property", "surface", "name", "email", "phone"].map((k) => `<p><strong>${labelFor(k)}</strong><span>${escapeHtml(d[k] || "Non renseigné")}</span></p>`).join("")}</div><label class="full">Description<textarea name="description">${escapeHtml(d.description)}</textarea></label><p><strong>Documents et informations utiles :</strong> ${escapeHtml(d.files || "Non renseignés")}</p><p>Votre demande et vos coordonnées seront transmises à <strong>UNITI INSEME LIMITED, société exploitant TravauxCorse</strong>, à l’adresse <strong>contact.travauxcorse@gmail.com</strong>, via FormSubmit, pour traiter votre projet et vous recontacter. FormSubmit conserve les envois pendant 30 jours. <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">Confidentialité du service d’envoi</a>.</p><label style="display:flex;align-items:flex-start;gap:12px;font-weight:500"><input type="checkbox" required style="width:20px;min-width:20px;min-height:20px;margin-top:3px"> J’accepte de transmettre ces informations pour être recontacté au sujet de mon projet.</label><p data-send-status role="status" aria-live="polite"></p><div class="actions"><button type="button" class="secondary" data-prev>Retour</button><button type="submit" class="primary">Envoyer ma demande</button></div><p>Après le clic, terminez la vérification sur FormSubmit. Si l’envoi échoue, revenez ici : votre brouillon n’aura pas été effacé.</p>`;
+  if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" maxlength="160" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" maxlength="10000" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input type="number" min="0" max="100000000" step="1" name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" maxlength="100" autocomplete="address-level2" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
+  if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input type="number" min="0" max="1000000" step="0.1" name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" maxlength="3000" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
+  if (d.step === 3) return `<h2>Photos & documents</h2><p>Ajoutez jusqu’à 5 photos, PDF ou plans au format PDF. Maximum 8 Mo au total. Les fichiers restent dans cet onglet jusqu’à l’envoi ; après un rechargement, sélectionnez-les à nouveau.</p><label for="request-attachments">Joindre des documents (facultatif)</label><input id="request-attachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" data-request-files aria-describedby="attachment-status"><p id="attachment-status" role="status">${requestAttachments.length ? requestAttachments.map(f=>escapeHtml(f.name)).join(" · ") : "Aucun fichier sélectionné."}</p>${requestAttachments.length ? '<button type="button" class="secondary" data-clear-files>Retirer les pièces jointes</button>' : ''}<label>Informations complémentaires<textarea name="files" maxlength="3000" placeholder="Précisions sur vos photos, plans ou diagnostics…">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
+  if (d.step === 4) return `<h2>Vos coordonnées</h2><div class="form-grid"><label>Nom et prénom<input name="name" maxlength="120" autocomplete="name" value="${escapeHtml(d.name)}" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() .-]{8,25}" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" value="${escapeHtml(d.phone)}" required /></label><label class="full">Email<input type="email" name="email" maxlength="254" autocomplete="email" value="${escapeHtml(d.email)}" required /></label></div>${stepActions()}`;
+  return `<h2>Vérifiez votre demande</h2><div class="summary">${["category", "title", "commune", "delay", "budget", "property", "surface", "name", "email", "phone"].map((k) => `<p><strong>${labelFor(k)}</strong><span>${escapeHtml(d[k] || "Non renseigné")}</span></p>`).join("")}</div><label class="full">Description<textarea name="description" maxlength="10000">${escapeHtml(d.description)}</textarea></label><p><strong>Pièces jointes :</strong> ${requestAttachments.length ? requestAttachments.map(f=>escapeHtml(f.name)).join(" · ") : "Aucune"}</p><p><strong>Documents et informations utiles :</strong> ${escapeHtml(d.files || "Non renseignés")}</p><p>Votre demande et vos coordonnées seront transmises à <strong>UNITI INSEME LIMITED, société exploitant TravauxCorse</strong>, à l’adresse <strong>contact.travauxcorse@gmail.com</strong>, via FormSubmit, pour traiter votre projet et vous recontacter. FormSubmit conserve les envois pendant 30 jours. <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">Confidentialité du service d’envoi</a>.</p><label style="display:flex;align-items:flex-start;gap:12px;font-weight:500"><input type="checkbox" required style="width:20px;min-width:20px;min-height:20px;margin-top:3px"> J’accepte de transmettre ces informations pour être recontacté au sujet de mon projet.</label><p data-send-status role="status" aria-live="polite"></p><div class="actions"><button type="button" class="secondary" data-prev>Retour</button><button type="submit" class="primary">Envoyer ma demande</button></div><p>Après le clic, terminez la vérification sur FormSubmit. Si l’envoi échoue, revenez ici : votre brouillon n’aura pas été effacé.</p>`;
 }
 
 function labelFor(key) {
@@ -447,12 +471,12 @@ function renderArtisans() {
   const f = state.filters;
   const artisans = filteredArtisans();
   return `<section class="page-section">
-    <div class="section-head"><h1>Trouvez un artisan en Corse</h1><p>Recherchez une entreprise locale selon votre type de travaux, votre commune ou votre zone d'intervention.</p></div>
+    <div class="section-head"><h1>Trouvez un artisan en Corse</h1><p class="notice">Annuaire de démonstration : ces fiches, notes et avis sont fictifs. Déposez votre projet pour demander une mise en relation réelle.</p><p>Recherchez une entreprise locale selon votre type de travaux, votre commune ou votre zone d'intervention.</p></div>
     <div class="finder">
       <aside class="filters">
         <div class="panel-head"><h2>Filtres</h2><button class="secondary" data-reset-filters>Réinitialiser</button></div>
         <label>Mot-clé<input data-filter="q" value="${escapeHtml(f.q)}" placeholder="Entreprise, métier..." /></label>
-        <label>Métier<select data-filter="trade"><option value="">Tous les métiers</option>${activeTrades().map((t) => `<option ${f.trade === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+        <label>Métier<select data-filter="trade"><option value="">Tous les métiers</option>${activeTrades().map((t) => `<option ${f.trade === t ? "selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select></label>
         <label>Zone<select data-filter="zone"><option value="">Toutes les zones</option>${["Ajaccio", "Bastia", "Calvi", "Corte", "Porto-Vecchio", "Haute-Corse", "Corse-du-Sud"].map((z) => `<option ${f.zone === z ? "selected" : ""}>${z}</option>`).join("")}</select></label>
         ${checkFilter("energy", "Travaux énergétiques")}${checkFilter("urgent", "Intervention urgente")}${checkFilter("verified", "Artisan validé uniquement")}
       </aside>
@@ -481,12 +505,12 @@ function renderArtisanCard(a) {
   return `<article class="artisan-card">
     <div class="avatar">${escapeHtml(a.name[0])}</div>
     <div>
-      <div class="card-top"><h3>${escapeHtml(a.name)}</h3><strong>${a.rating} / 5</strong></div>
-      <p class="muted">${escapeHtml(a.city)} · ${escapeHtml(a.department)} · ${a.reviews} avis</p>
+      <div class="card-top"><h3>${escapeHtml(a.name)}</h3><strong>${escapeHtml(a.rating)} / 5</strong></div>
+      <p class="muted">${escapeHtml(a.city)} · ${escapeHtml(a.department)} · ${escapeHtml(a.reviews)} avis</p>
       <p>${escapeHtml(a.text)}</p>
       <div class="chips">${a.verified ? `<span>Artisan validé</span>` : ""}${a.energy.length ? `<span>Travaux énergétiques</span>` : ""}<span>${escapeHtml(a.status)}</span>${a.premium ? `<span>Premium</span>` : ""}</div>
       <div class="tags">${[...a.trades, ...a.energy].slice(0, 6).map((t) => `<span>${escapeHtml(t)}</span>`).join("")}</div>
-      <div class="actions"><button class="secondary" data-artisan="${a.id}">Voir la fiche</button><button class="primary" data-request-category="${escapeHtml(a.trades[0])}">Devis</button></div>
+      <div class="actions"><button class="secondary" data-artisan="${escapeHtml(a.id)}">Voir la fiche</button><button class="primary" data-request-category="${escapeHtml(a.trades[0])}">Devis</button></div>
       ${state.selectedArtisan === a.id ? renderArtisanDetails(a) : ""}
     </div>
   </article>`;
@@ -542,7 +566,7 @@ function renderSuppliers() {
 
 function renderSupplierCard(supplier) {
   return `<article class="supplier-card">
-    <div class="supplier-badge">${escapeHtml(supplier.badge)}</div>
+    <div class="supplier-badge">Exemple de fournisseur · ${escapeHtml(supplier.badge)}</div>
     <h3>${escapeHtml(supplier.name)}</h3>
     <p class="muted">${escapeHtml(supplier.family)} · ${escapeHtml(supplier.zone)}</p>
     <p>${escapeHtml(supplier.text)}</p>
@@ -633,139 +657,17 @@ function renderPartner() {
       <h2>Demande de partenariat</h2>
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
-        <label>Email<input type="email" name="email" required /></label><label>Téléphone<input name="phone" required /></label>
-        <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${t}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
+        <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() .-]{8,25}" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
+        <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
-      <button class="primary" type="submit">Envoyer ma candidature</button>
+      <p>Vos coordonnées seront envoyées à TravauxCorse via FormSubmit pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status"></p><button class="primary" type="submit">Envoyer ma candidature</button>
     </form>
   </section>`;
 }
 
-function renderLogin() {
-  return `<section class="login-page">
-    <div class="login-panel">
-      <a class="brand centered" href="#" data-page="home"><span>TRAVAUX</span>CORSE<small>Vos travaux, notre priorité</small></a>
-      <h1>Connexion aux espaces</h1>
-      <p>Prototype local : choisissez un profil pour voir exactement ce que chaque utilisateur pourra gérer.</p>
-      <div class="login-choice-grid">
-        ${loginCard("admin", "Administration", "Valider les demandes, attribuer fournisseurs/artisans, personnaliser le site.", "admin@travauxcorse.fr")}
-        ${loginCard("client", "Particulier", "Suivre l'évolution de ses demandes et voir les attributions.", "sophie@example.fr")}
-        ${loginCard("artisan", "Artisan", "Voir les chantiers attribués et leur état d'avancement.", "artisan@travauxcorse.fr")}
-      </div>
-      <form class="login-form" data-login-form>
-        <h2>Connexion manuelle</h2>
-        <label>Email<input type="email" name="email" value="admin@travauxcorse.fr" /></label>
-        <label>Mot de passe<input type="password" name="password" value="admin" /></label>
-        <button class="primary">Se connecter</button>
-      </form>
-      <p class="muted">Comptes de test : admin/admin, client/client, artisan/artisan.</p>
-    </div>
-  </section>`;
-}
-
-function loginCard(role, title, text, email) {
-  return `<button class="login-card" data-role-login="${role}"><strong>${title}</strong><span>${text}</span><small>${email}</small></button>`;
-}
-
-function renderClientSpace() {
-  if (state.role !== "client" && state.role !== "admin") return renderLoginGate("Espace client");
-  const requests = state.role === "admin" ? state.requests : state.requests.filter((r) => r.email === state.currentUserEmail);
-  return `<section class="page-section">
-    ${spaceHeader("Compte particulier", "Espace client", "Suivez l'évolution de vos demandes, les fournisseurs proposés et les entreprises attribuées.")}
-    <div class="request-track-grid">${requests.map(renderClientRequest).join("") || `<div class="notice">Aucune demande associée à ce compte.</div>`}</div>
-  </section>`;
-}
-
-function renderArtisanSpace() {
-  if (state.role !== "artisan" && state.role !== "admin") return renderLoginGate("Espace artisan");
-  const account = currentAccount();
-  const requests = state.role === "admin" ? state.requests.filter((r) => r.assignedArtisanId || r.assignedArtisan) : state.requests.filter((r) => r.assignedArtisanId === account?.artisanId || r.assignedArtisan === account?.name);
-  return `<section class="page-section">
-    ${spaceHeader("Entreprise partenaire", "Chantiers attribués", "Consultez les demandes qui vous ont été attribuées et les informations utiles avant contact client.")}
-    <div class="request-track-grid">${requests.map(renderArtisanRequest).join("") || `<div class="notice">Aucun chantier attribué pour le moment.</div>`}</div>
-  </section>`;
-}
-
-function currentAccount() {
-  return state.accounts.find((account) => account.email === state.currentUserEmail && account.role === state.role);
-}
-
-function spaceHeader(eyebrow, title, text) {
-  return `<div class="dashboard-head"><div><p class="eyebrow">${eyebrow}</p><h1>${title}</h1><p>${text}</p><p class="muted">Connecté : ${escapeHtml(currentAccount()?.email || state.currentUserEmail || "admin")}</p></div><button class="secondary" data-logout>Déconnexion</button></div>`;
-}
-
-function renderClientRequest(request) {
-  return `<article class="tracking-card">
-    <div class="card-top"><div><p class="eyebrow">${escapeHtml(request.category)}</p><h3>${escapeHtml(request.title)}</h3><p class="muted">${escapeHtml(request.commune)} · ${escapeHtml(request.delay)} · ${fmtDate.format(new Date(`${request.date}T12:00:00`))}</p></div><span class="status">${escapeHtml(request.status)}</span></div>
-    <p>${escapeHtml(request.description)}</p>
-    <div class="assignment-grid">
-      <div><strong>Fournisseur attribué</strong><span>${escapeHtml(request.assignedSupplier || "En attente")}</span></div>
-      <div><strong>Entreprise attribuée</strong><span>${escapeHtml(request.assignedArtisan || "En attente")}</span></div>
-    </div>
-    ${renderTimeline(request)}
-    ${request.adminNote ? `<div class="note-box"><strong>Message TravauxCorse</strong><p>${escapeHtml(request.adminNote)}</p></div>` : ""}
-  </article>`;
-}
-
-function renderArtisanRequest(request) {
-  return `<article class="tracking-card">
-    <div class="card-top"><div><p class="eyebrow">${escapeHtml(request.category)}</p><h3>${escapeHtml(request.title)}</h3><p class="muted">${escapeHtml(request.commune)} · ${escapeHtml(request.property || "Bien non précisé")} · ${escapeHtml(request.surface || "?")} m²</p></div><span class="status">${escapeHtml(request.status)}</span></div>
-    <p>${escapeHtml(request.description)}</p>
-    <div class="assignment-grid">
-      <div><strong>Client</strong><span>${escapeHtml(request.name)} · ${escapeHtml(request.phone)}</span></div>
-      <div><strong>Fourniture</strong><span>${escapeHtml(request.assignedSupplier || "Non attribuée")}</span></div>
-    </div>
-    <div class="note-box"><strong>Consigne TravauxCorse</strong><p>${escapeHtml(request.adminNote || "Prendre connaissance du projet et attendre validation avant planification.")}</p></div>
-  </article>`;
-}
-
-function renderTimeline(request) {
-  return `<div class="timeline-line">${(request.timeline || ["Demande déposée"]).map((item, index) => `<span class="${index === (request.timeline || []).length - 1 ? "current" : ""}">${escapeHtml(item)}</span>`).join("")}</div>`;
-}
-
-function renderLoginGate(title) {
-  return `<section class="page-section narrow"><div class="notice"><h1>${title}</h1><p>Connectez-vous pour accéder à cet espace.</p><button class="primary" data-page="login">Connexion</button></div></section>`;
-}
-
-function renderAdmin() {
-  if (state.role !== "admin") return renderLoginGate("Administration");
-  return `<section class="page-section">
-    ${spaceHeader("Pilotage", "Administration TravauxCorse", "Validez les demandes, attribuez fournisseurs et entreprises, suivez les chantiers et personnalisez le site.")}
-    <div class="stats">${stat(state.requests.length, "Demandes")}${stat(state.requests.filter((r) => r.assignedSupplier).length, "Fournisseurs attribués")}${stat(state.requests.filter((r) => r.assignedArtisan).length, "Entreprises attribuées")}${stat(state.partners.length, "Candidatures")}</div>
-    <div class="admin-layout">
-      <section class="panel admin-wide"><h2>Demandes à gérer</h2><div class="admin-request-list">${state.requests.map(renderAdminRequest).join("")}</div></section>
-      <section class="panel"><h2>Personnalisation du site</h2>${renderSiteSettingsForm()}</section>
-      <section class="panel"><h2>Candidatures partenaires</h2>${state.partners.map((p) => `<article class="mini"><strong>${escapeHtml(p.company)}</strong><span>${escapeHtml(p.trade)} · ${escapeHtml(p.zone)} · ${escapeHtml(p.status)}</span></article>`).join("")}</section>
-    </div>
-  </section>`;
-}
-
-function renderAdminRequest(request) {
-  return `<form class="admin-request-card" data-admin-request="${request.id}">
-    <div><p class="eyebrow">${escapeHtml(request.category)}</p><h3>${escapeHtml(request.title)}</h3><p>${escapeHtml(request.name)} · ${escapeHtml(request.commune)} · ${escapeHtml(request.phone)}</p><p class="muted">${escapeHtml(request.description)}</p></div>
-    <div class="form-grid">
-      <label>Statut<select name="status">${["Nouvelle", "En qualification", "Vérifiée", "Fournisseur attribué", "Entreprise attribuée", "Transmise", "Chantier en cours", "Terminée"].map((s) => `<option ${request.status === s ? "selected" : ""}>${s}</option>`).join("")}</select></label>
-      <label>Fournisseur<select name="assignedSupplier"><option value="">Non attribué</option>${state.supplierPartners.map((s) => `<option value="${escapeHtml(s.name)}" ${request.assignedSupplier === s.name ? "selected" : ""}>${escapeHtml(s.name)}</option>`).join("")}</select></label>
-      <label>Entreprise / artisan<select name="assignedArtisanId"><option value="">Non attribué</option>${state.artisans.map((a) => `<option value="${a.id}" ${request.assignedArtisanId === a.id ? "selected" : ""}>${escapeHtml(a.name)}</option>`).join("")}</select></label>
-      <label class="full">Note visible dans le suivi<textarea name="adminNote">${escapeHtml(request.adminNote || "")}</textarea></label>
-    </div>
-    <div class="actions"><button class="primary" type="submit">Enregistrer</button></div>
-  </form>`;
-}
-
-function renderSiteSettingsForm() {
-  return `<form class="settings-form" data-site-settings>
-    <label>Titre d'accueil<input name="headline" value="${escapeHtml(state.siteSettings.headline)}" /></label>
-    <label>Texte d'accueil<textarea name="intro">${escapeHtml(state.siteSettings.intro)}</textarea></label>
-    <label>Email public<input name="contactEmail" value="${escapeHtml(state.siteSettings.contactEmail)}" /></label>
-    <label>Téléphone public<input name="contactPhone" value="${escapeHtml(state.siteSettings.contactPhone)}" /></label>
-    <button class="primary" type="submit">Mettre à jour le site</button>
-  </form>`;
-}
-
 function bind() {
-  document.querySelectorAll("[data-page]").forEach((el) => el.addEventListener("click", (event) => { event.preventDefault(); setPage(el.dataset.page); }));
+  document.querySelectorAll("[data-page]").forEach((el) => el.addEventListener("click", (event) => { if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault(); setPage(el.dataset.page); }));
   const menuButton = document.querySelector("[data-menu]");
   const menu = document.querySelector("[data-nav]");
   if (menuButton && menu) {
@@ -813,19 +715,53 @@ function bind() {
 function captureRequestDraft() {
   const form = document.querySelector("[data-request-form]");
   if (!form) return;
-  new FormData(form).forEach((value, key) => { state.requestDraft[key] = value; });
+  new FormData(form).forEach((value, key) => { if (typeof value === "string" && Object.hasOwn(seed.requestDraft, key)) state.requestDraft[key] = value; });
+}
+
+function showRequestError(message) {
+  const node = document.querySelector("[data-request-error]");
+  if (node) { node.textContent = message; node.focus(); }
 }
 
 function validateRequestStep() {
   const d = state.requestDraft;
   if (d.step === 0 && !selectedCategories(d).length) {
-    alert("Choisissez un type de travaux pour continuer.");
+    showRequestError("Choisissez au moins un métier pour continuer.");
     return false;
   }
+  if (d.step === 1 && (!d.title.trim() || !d.commune.trim())) { showRequestError("Indiquez un intitulé et une commune."); return false; }
+  if (d.step === 4 && (!d.name.trim() || !validPhone(d.phone))) { showRequestError("Indiquez votre nom et un téléphone valide (8 à 15 chiffres)."); return false; }
   return document.querySelector("[data-request-form]")?.reportValidity() !== false;
 }
 
+function validPhone(value) { return /^[+0-9() .-]+$/.test(value) && value.replace(/\D/g, "").length >= 8 && value.replace(/\D/g, "").length <= 15; }
+
+async function validateAttachment(file) {
+  if (!file.size || file.size > 8 * 1024 * 1024) throw Error('Chaque fichier doit être non vide et inférieur à 8 Mo.');
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const start = String.fromCharCode(...bytes);
+  const valid = /\.pdf$/i.test(file.name) ? start.startsWith('%PDF-') : /\.jpe?g$/i.test(file.name) ? bytes[0]===255 && bytes[1]===216 && bytes[2]===255 : /\.png$/i.test(file.name) ? bytes.slice(0,8).join(',')==='137,80,78,71,13,10,26,10' : /\.webp$/i.test(file.name) ? start.startsWith('RIFF') && start.slice(8,12)==='WEBP' : false;
+  if (!valid) throw Error('Format non valide : utilisez uniquement des photos JPG, PNG, WebP ou des PDF.');
+}
+function bindAttachments() {
+  document.querySelector('[data-clear-files]')?.addEventListener('click',()=>{requestAttachments=[];render();});
+  document.querySelector('[data-request-files]')?.addEventListener('change',async event=>{
+    const input=event.currentTarget, files=[...input.files];
+    const next=document.querySelector('[data-request-form] button[type="submit"]');
+    if(next)next.disabled=true;
+    try {
+      if(files.length>5 || files.reduce((sum,f)=>sum+f.size,0)>8*1024*1024) throw Error('Sélectionnez au maximum 5 fichiers et 8 Mo au total.');
+      for(const file of files) await validateAttachment(file);
+      requestAttachments=files;
+      document.querySelector('#attachment-status').textContent=files.map(f=>f.name).join(' · ') || 'Aucun fichier sélectionné.';
+      document.querySelector('[data-request-error]').textContent='';
+    } catch(error) {input.value='';showRequestError(error.message);}
+    finally {if(next)next.disabled=false;}
+  });
+}
+
 function bindRequest() {
+  bindAttachments();
   document.querySelector("[data-request-form]")?.addEventListener("input", () => { captureRequestDraft(); saveState(); });
   document.querySelector("[data-request-form]")?.addEventListener("change", () => { captureRequestDraft(); saveState(); });
   document.querySelectorAll("[data-step]").forEach((el) => el.addEventListener("click", () => {
@@ -841,12 +777,12 @@ function bindRequest() {
     event.preventDefault();
     if (!validateRequestStep()) return;
     const data = new FormData(event.currentTarget);
-    data.forEach((value, key) => { state.requestDraft[key] = value; });
+    data.forEach((value, key) => { if (typeof value === "string" && Object.hasOwn(seed.requestDraft, key)) state.requestDraft[key] = value; });
     if (state.requestDraft.step < 5) {
       state.requestDraft.step += 1;
     } else {
-      if (!state.requestDraft.category || !state.requestDraft.title.trim() || !state.requestDraft.commune.trim() || !state.requestDraft.name.trim() || !state.requestDraft.phone.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.requestDraft.email)) {
-        alert("Complétez le type de travaux, le projet, la commune et vos coordonnées avant de terminer.");
+      if (!state.requestDraft.category || !state.requestDraft.title.trim() || !state.requestDraft.commune.trim() || !state.requestDraft.name.trim() || !validPhone(state.requestDraft.phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.requestDraft.email)) {
+        showRequestError("Complétez le projet, la commune et vos coordonnées en revenant aux étapes correspondantes.");
         return;
       }
       saveState();
@@ -861,7 +797,7 @@ function bindRequest() {
 function sendProjectByEmail(draft, sourceForm) {
   if (sourceForm.dataset.sending === "true") return;
   const payload = {
-    _subject: "TravauxCorse — Nouvelle demande de travaux",
+    _subject: draft.subject || "TravauxCorse — Nouvelle demande de travaux",
     _template: "table",
     _captcha: "true",
     name: draft.name,
@@ -880,6 +816,11 @@ function sendProjectByEmail(draft, sourceForm) {
   };
   const delivery = document.createElement("form");
   delivery.method = "POST";
+  delivery.enctype = "multipart/form-data";
+  for (const [index,file] of (draft.subject ? [] : requestAttachments).entries()) {
+    const input=document.createElement("input"), transfer=new DataTransfer();
+    input.type="file"; input.name=index ? "attachment"+index : "attachment"; transfer.items.add(file); input.files=transfer.files; delivery.appendChild(input);
+  }
   delivery.action = "https://formsubmit.co/contact.travauxcorse@gmail.com";
   delivery.hidden = true;
   for (const [name, value] of Object.entries(payload)) {
@@ -934,11 +875,8 @@ function bindForms() {
   document.querySelector("[data-partner-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget));
-    state.partners.unshift({ id: uid("par"), date: today(), status: "À valider", ...data });
-    state.role = "artisan";
-    state.page = "artisanSpace";
-    saveState();
-    render();
+    if (!validPhone(data.phone)) { event.currentTarget.querySelector('[data-send-status]').textContent="Indiquez un téléphone valide."; return; }
+    sendProjectByEmail({subject:"TravauxCorse — Candidature partenaire",name:data.manager,email:data.email,phone:data.phone,title:data.company,commune:data.zone,categories:[data.trade],description:data.message,files:"Candidature au réseau"}, event.currentTarget);
   });
   document.querySelectorAll("[data-role-login]").forEach((el) => el.addEventListener("click", () => {
     state.role = el.dataset.roleLogin;
