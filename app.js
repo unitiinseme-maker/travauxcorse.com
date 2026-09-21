@@ -107,7 +107,7 @@ const energyAids = [
     summary: "Dispositif régional pour la rénovation énergétique des logements insulaires, avec accompagnement ORELI - Mon Accompagnateur Rénov'.",
     bestFor: "Maisons et appartements en Corse avec projet de rénovation globale.",
     points: ["Objectif de saut de classes énergétiques", "Accompagnement technique et administratif", "Cumul possible avec MaPrimeRénov' selon les cas"],
-    link: "https://www.aue.corsica/L-AUE-facilite-la-renovation-energetique-de-votre-logement-individuel-_a1007.html",
+    link: "https://aue.corsica/actualites/oreli-renover-son-logement-en-corse-sans-souci/",
     linkLabel: "Découvrir ORELI"
   },
   {
@@ -157,7 +157,7 @@ const energyAids = [
     summary: "Prime régionale pour l'installation d'un chauffe-eau solaire individuel, sous conditions et avec installateurs chartés.",
     bestFor: "Production d'eau chaude sanitaire solaire en maison ou logement adapté.",
     points: ["Projet non commencé avant demande", "Recours à des professionnels référencés", "Cumul possible selon le dossier"],
-    link: "https://www.aue.corsica/Le-guide-des-primes_a206.html",
+    link: "https://aue.corsica/aides-accompagnements/particuliers/",
     linkLabel: "Voir le guide AUE"
   },
   {
@@ -638,8 +638,8 @@ function renderEnergy() {
       <div class="source-links">
         <a href="https://france-renov.gouv.fr/aides/simulation" target="_blank" rel="noreferrer">France Rénov' · simulateur</a>
         <a href="https://france-renov.gouv.fr/aides/maprimerenov" target="_blank" rel="noreferrer">MaPrimeRénov'</a>
-        <a href="https://www.aue.corsica/L-AUE-facilite-la-renovation-energetique-de-votre-logement-individuel-_a1007.html" target="_blank" rel="noreferrer">ORELI · AUE Corse</a>
-        <a href="https://www.aue.corsica/Le-guide-des-primes_a206.html" target="_blank" rel="noreferrer">Guide des primes AUE</a>
+        <a href="https://aue.corsica/actualites/oreli-renover-son-logement-en-corse-sans-souci/" target="_blank" rel="noreferrer">ORELI · AUE Corse</a>
+        <a href="https://aue.corsica/aides-accompagnements/particuliers/" target="_blank" rel="noreferrer">Guide des primes AUE</a>
         <a href="https://www.service-public.gouv.fr/particuliers/vosdroits/N321" target="_blank" rel="noreferrer">Service-Public · aides et prêts</a>
         <a href="https://france-renov.gouv.fr/annuaires-professionnels/artisan-rge-architecte" target="_blank" rel="noreferrer">Annuaire des professionnels RGE</a>
       </div>
