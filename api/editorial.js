@@ -32,7 +32,7 @@ module.exports=async function(req,res){
       for(const [key,value] of attempts)if(value.until<Date.now())attempts.delete(key);
       const attempt=attempts.get(ip)||{count:0,until:Date.now()+900000};
       if(attempt.count>=5){res.setHeader('Retry-After','900');return send(res,429,{error:'Trop de tentatives. Réessayez dans 15 minutes.'});}
-      if(typeof body.password!=='string'||!same(body.password,c.password)){attempt.count++;if(attempts.size<10000)attempts.set(ip,attempt);return send(res,401,{error:'Mot de passe incorrect.'});}
+      if(typeof body.password!=='string'||!same(body.password,c.password)){attempt.count++;if(attempts.size>=10000&&!attempts.has(ip))return send(res,429,{error:"Trop de tentatives. Réessayez plus tard."});attempts.set(ip,attempt);return send(res,401,{error:'Mot de passe incorrect.'});}
       attempts.delete(ip);const data={exp:Date.now()+8*3600000,nonce:crypto.randomBytes(24).toString('base64url'),password:digest(c.password).toString('hex')};
       const payload=Buffer.from(JSON.stringify(data)).toString('base64url');
       res.setHeader('Set-Cookie',`__Host-tc-editor=${payload}.${sign(payload,c.secret)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=28800`);
@@ -42,5 +42,5 @@ module.exports=async function(req,res){
     if(!same(req.headers['x-csrf-token']||'',sign(auth.nonce,c.secret)))return send(res,403,{error:'Session invalide. Rechargez la page.'});
     if(body.action==='logout'){res.setHeader('Set-Cookie','__Host-tc-editor=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0');return send(res,200,{ok:true});}
     return send(res,200,await createStore(c).save(body));
-  }catch(error){return send(res,error.status||500,{error:error.status?error.message:'L’enregistrement a échoué. Votre saisie est conservée à l’écran ; réessayez.'});}
+  }catch(error){return send(res,error instanceof SyntaxError?400:error.status||500,{error:error.status?error.message:'L’enregistrement a échoué. Votre saisie est conservée à l’écran ; réessayez.'});}
 };

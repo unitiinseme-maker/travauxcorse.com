@@ -5,3 +5,14 @@ test('phone validation accepts French and international numbers, rejects letters
 test('user supplied trade names are escaped in both selection and directory',()=>{const run=app();run('state.customTrades=[\'<img src=x onerror=alert(1)>\']');assert(!run('renderHome()').includes('<img src=x'));assert(run('renderRequestStep()').includes('&lt;img'));});
 test('legacy links and real public paths remain routable',()=>{const run=app();for(const [pathname,page]of [['/','home'],['/travaux-energetiques/','energy'],['/partenaires/','suppliers'],['/deposer-une-demande/','request'],['/devenir-partenaire/','partner']]){run(`location.pathname=${JSON.stringify(pathname)}`);assert.equal(run('pageFromUrl()'),page);}run('location.hash="#deposer"');assert.equal(run('pageFromUrl()'),'request');});
 test('published project filters carry escaped categories',()=>{const {cards}=require('../lib/content-render');const output=cards([{kind:'realisation',slug:'exemple',title:'Test',summary:'Test',images:[],trades:'Électricité, Plomberie" onclick="bad'}]);assert(output.includes('data-project-trades="Électricité, Plomberie&quot;'));assert(!output.includes(' onclick="bad'));});
+test('all existing portal roles and tabs render without runtime errors',()=>{
+ const scope={Intl,structuredClone,location:{hash:'',pathname:'/'},localStorage:{getItem(){return null}},window:{addEventListener(){}},document:{addEventListener(){}}};vm.createContext(scope);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../app.js'),'utf8').replace(/render\(\);\s*$/,''),scope);
+ vm.runInContext(fs.readFileSync(path.join(__dirname,'../portal.js'),'utf8'),scope);
+ const source=fs.readFileSync(path.join(__dirname,'../portal.js'),'utf8'),navText=source.match(/const navs = (\{[\s\S]*?\n  \});/)[1];const navs=vm.runInNewContext('('+navText+')');
+ for(const [page,tabs]of Object.entries(navs)){
+  const role=page==='company'?'artisan':page;
+  vm.runInContext(`window.TravauxCorsePortal.ensure(state);state.role=${JSON.stringify(role)};state.currentUserEmail=state.accounts.find(a=>a.role===state.role).email;`,scope);
+  for(const tab of tabs){vm.runInContext(`state.portalTab=${JSON.stringify(tab)};state.openProject="";`,scope);const html=vm.runInContext(`window.TravauxCorsePortal.render(${JSON.stringify(page)},state)`,scope);assert(html.includes('portal'),page+': '+tab);}
+ }
+});

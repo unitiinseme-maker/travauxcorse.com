@@ -225,13 +225,22 @@ const seed = {
 };
 
 const routePaths = {home:"/",energy:"/travaux-energetiques/",suppliers:"/partenaires/",request:"/deposer-une-demande/",partner:"/devenir-partenaire/"};
+const portalPages=new Set(["login","auth","signin","registerClient","registerCompany","registerPartner","forgot","client","artisanSpace","partnerSpace","admin"]);
+let portalLoading=false,portalError=false;
+function loadPortal(){
+  portalLoading=true;
+  const script=document.createElement("script");script.src="/portal.js";
+  script.onload=()=>{portalLoading=false;render();};
+  script.onerror=()=>{portalLoading=false;portalError=true;script.remove();render();};
+  document.head.appendChild(script);
+}
 let requestAttachments = [];
 let state = loadState();
 const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
   if (route === "deposer") return "request";
-  return applicationPages.has(route) ? route : (Object.entries(routePaths).find(([,path]) => path === (location.pathname || "/"))?.[0] || "home");
+  return applicationPages.has(route) ? route : (Object.entries(routePaths).find(([,path]) => path === (location.pathname || "/").replace(/\/index\.html$/, "/").replace(/\/?$/, "/"))?.[0] || "home");
 }
 state.page = pageFromUrl();
 
@@ -332,6 +341,10 @@ function render() {
   bind();
   document.title = ({home:"TravauxCorse | Artisans et travaux en Corse",request:"Déposer un projet de travaux | TravauxCorse",energy:"Rénovation énergétique en Corse | TravauxCorse",suppliers:"Fournisseurs et matériaux en Corse | TravauxCorse",login:"Connexion | TravauxCorse"})[state.page] || "Votre espace | TravauxCorse";
   document.querySelector("main")?.setAttribute("tabindex", "-1");
+  const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href="https://travauxcorse.com"+(routePaths[state.page]||"/");
+  const description=document.querySelector('meta[name="description"]');if(description)description.content=({home:"TravauxCorse met en relation particuliers, artisans et fournisseurs pour vos travaux en Haute-Corse et Corse-du-Sud.",request:"Déposez un projet de travaux en Corse, sélectionnez plusieurs métiers et joignez vos photos ou plans.",energy:"Isolation, climatisation, chauffage et rénovation énergétique en Corse : préparez votre projet.",suppliers:"Organisez les matériaux et équipements de votre chantier en Corse avec TravauxCorse."})[state.page]||"Les services TravauxCorse pour votre projet en Corse.";
+  if (state.page === "request") { const heading=document.querySelector('[data-request-form] h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
+  if (portalPages.has(state.page) && !window.TravauxCorsePortal && !portalLoading && !portalError) loadPortal();
 }
 
 function renderHeader() {
@@ -343,6 +356,7 @@ function renderFooter() {
 }
 
 function renderPage() {
+  if(portalPages.has(state.page)&&!window.TravauxCorsePortal)return `<section class="page-section"><h1>Vos espaces TravauxCorse</h1><p role="status">${portalError ? 'Le chargement a échoué. Vérifiez votre connexion et réessayez.' : 'Chargement de votre espace…'}</p>${portalError ? '<button class="primary" data-retry-portal>Réessayer</button>' : ''}</section>`;
   window.TravauxCorsePortal?.ensure(state);
   const pages = {
     home: renderHome,
@@ -400,7 +414,7 @@ function renderHome() {
       <h2>Comment ça marche ?</h2>
       <div class="steps">${["Vous déposez votre projet", "TravauxCorse identifie les professionnels", "L’artisan confirme son intervention", "Le fournisseur prépare les matériaux"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Particulier ou professionnel : précisez les travaux, la commune et vos attentes.", "Votre demande est examinée pour rechercher les entreprises adaptées à votre besoin.", "Vous échangez sur le chantier, comparez les devis et choisissez votre entreprise.", "Selon le projet, le partenaire fournit les matériaux. Vous pouvez aussi les acheter directement auprès de lui."][i]}</p></article>`).join("")}</div>
     </section>
-    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></section>
+    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2><details class="trade-index"><summary>Voir les ${activeTrades().length} catégories de travaux</summary><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></details></section>
     ${renderEnergyIntro()}
     </div>
   `;
@@ -444,7 +458,7 @@ function renderRequest() {
     <h1>Déposer une demande</h1>
     <p>Sans création de compte. À la dernière étape, une vérification antispam précède l’envoi par email à TravauxCorse. Votre brouillon est conservé pendant cette session pour vous permettre de revenir en arrière.</p>
     <div class="progress"><div style="width:${(d.step / 5) * 100}%"></div></div>
-    <div class="stepper">${steps.map((s, i) => `<button class="${d.step === i ? "active" : ""}" data-step="${i}"><span>${i + 1}</span>${s}</button>`).join("")}</div>
+    <div class="stepper">${steps.map((s, i) => `<button class="${d.step === i ? "active" : ""}" data-step="${i}" ${i > d.step + 1 ? "disabled" : ""} ${i === d.step ? 'aria-current="step"' : ""}><span>${i + 1}</span>${s}</button>`).join("")}</div>
     <form class="form-panel" data-request-form><p data-request-error class="form-error" role="alert" tabindex="-1"></p>${renderRequestStep()}</form>
   </section>`;
 }
@@ -454,8 +468,8 @@ function renderRequestStep() {
   if (d.step === 0) return `<h2>Types de travaux</h2><p>Cochez tous les métiers nécessaires à votre projet.</p>${renderTradeChoices("request")}${stepActions()}`;
   if (d.step === 1) return `<h2>Votre projet</h2><div class="form-grid"><label>Intitulé<input name="title" maxlength="160" value="${escapeHtml(d.title)}" placeholder="Ex : rénovation salle de bain" required /></label><label>Délai<select name="delay">${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map((x) => `<option ${d.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label class="full">Description<textarea name="description" maxlength="10000" placeholder="Décrivez les travaux, contraintes, accès, attentes...">${escapeHtml(d.description)}</textarea></label><label>Budget indicatif<input type="number" min="0" max="100000000" step="1" name="budget" value="${escapeHtml(d.budget)}" placeholder="Ex : 5000" /></label><label>Commune<input name="commune" maxlength="100" autocomplete="address-level2" value="${escapeHtml(d.commune)}" placeholder="Ex : Ajaccio" required /></label></div>${stepActions()}`;
   if (d.step === 2) return `<h2>Votre bien</h2><div class="form-grid"><label>Type de bien<select name="property">${["Maison", "Appartement", "Local professionnel", "Copropriété", "Terrain"].map((x) => `<option ${d.property === x ? "selected" : ""}>${x}</option>`).join("")}</select></label><label>Surface approximative<input type="number" min="0" max="1000000" step="0.1" name="surface" value="${escapeHtml(d.surface)}" placeholder="m²" /></label><label class="full">Informations utiles<textarea name="files" maxlength="3000" placeholder="Accès, étage, stationnement, photos disponibles, contraintes...">${escapeHtml(d.files)}</textarea></label></div>${stepActions()}`;
-  if (d.step === 3) return `<h2>Photos & documents</h2><p>Ajoutez jusqu’à 5 photos, PDF ou plans au format PDF. Maximum 8 Mo au total. Les fichiers restent dans cet onglet jusqu’à l’envoi ; après un rechargement, sélectionnez-les à nouveau.</p><label for="request-attachments">Joindre des documents (facultatif)</label><input id="request-attachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" data-request-files aria-describedby="attachment-status"><p id="attachment-status" role="status">${requestAttachments.length ? requestAttachments.map(f=>escapeHtml(f.name)).join(" · ") : "Aucun fichier sélectionné."}</p>${requestAttachments.length ? '<button type="button" class="secondary" data-clear-files>Retirer les pièces jointes</button>' : ''}<label>Informations complémentaires<textarea name="files" maxlength="3000" placeholder="Précisions sur vos photos, plans ou diagnostics…">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
-  if (d.step === 4) return `<h2>Vos coordonnées</h2><div class="form-grid"><label>Nom et prénom<input name="name" maxlength="120" autocomplete="name" value="${escapeHtml(d.name)}" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() .-]{8,25}" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" value="${escapeHtml(d.phone)}" required /></label><label class="full">Email<input type="email" name="email" maxlength="254" autocomplete="email" value="${escapeHtml(d.email)}" required /></label></div>${stepActions()}`;
+  if (d.step === 3) return `<h2>Photos & documents</h2><p>Ajoutez jusqu’à 5 photos, PDF ou plans au format PDF. Maximum 8 Mo au total. Les fichiers restent dans cet onglet jusqu’à l’envoi ; après un rechargement, sélectionnez-les à nouveau.</p><label for="request-attachments">Joindre des documents (facultatif)</label><input id="request-attachments" type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" data-request-files aria-describedby="attachment-status"><p id="attachment-status" role="status">${requestAttachments.length ? requestAttachments.map(f=>escapeHtml(f.name)).join(" · ") : "Aucun fichier sélectionné."}</p><button type="button" class="secondary" data-clear-files ${requestAttachments.length ? "" : "hidden"}>Retirer les pièces jointes</button><label>Informations complémentaires<textarea name="files" maxlength="3000" placeholder="Précisions sur vos photos, plans ou diagnostics…">${escapeHtml(d.files)}</textarea></label>${stepActions()}`;
+  if (d.step === 4) return `<h2>Vos coordonnées</h2><div class="form-grid"><label>Nom et prénom<input name="name" maxlength="120" autocomplete="name" value="${escapeHtml(d.name)}" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" minlength="8" maxlength="25" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" value="${escapeHtml(d.phone)}" required /></label><label class="full">Email<input type="email" name="email" maxlength="254" autocomplete="email" value="${escapeHtml(d.email)}" required /></label></div>${stepActions()}`;
   return `<h2>Vérifiez votre demande</h2><div class="summary">${["category", "title", "commune", "delay", "budget", "property", "surface", "name", "email", "phone"].map((k) => `<p><strong>${labelFor(k)}</strong><span>${escapeHtml(d[k] || "Non renseigné")}</span></p>`).join("")}</div><label class="full">Description<textarea name="description" maxlength="10000">${escapeHtml(d.description)}</textarea></label><p><strong>Pièces jointes :</strong> ${requestAttachments.length ? requestAttachments.map(f=>escapeHtml(f.name)).join(" · ") : "Aucune"}</p><p><strong>Documents et informations utiles :</strong> ${escapeHtml(d.files || "Non renseignés")}</p><p>Votre demande et vos coordonnées seront transmises à <strong>UNITI INSEME LIMITED, société exploitant TravauxCorse</strong>, à l’adresse <strong>contact.travauxcorse@gmail.com</strong>, via FormSubmit, pour traiter votre projet et vous recontacter. FormSubmit conserve les envois pendant 30 jours. <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">Confidentialité du service d’envoi</a>.</p><label style="display:flex;align-items:flex-start;gap:12px;font-weight:500"><input type="checkbox" required style="width:20px;min-width:20px;min-height:20px;margin-top:3px"> J’accepte de transmettre ces informations pour être recontacté au sujet de mon projet.</label><p data-send-status role="status" aria-live="polite"></p><div class="actions"><button type="button" class="secondary" data-prev>Retour</button><button type="submit" class="primary">Envoyer ma demande</button></div><p>Après le clic, terminez la vérification sur FormSubmit. Si l’envoi échoue, revenez ici : votre brouillon n’aura pas été effacé.</p>`;
 }
 
@@ -657,7 +671,7 @@ function renderPartner() {
       <h2>Demande de partenariat</h2>
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
-        <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" pattern="[+0-9() .-]{8,25}" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
+        <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" minlength="8" maxlength="25" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
         <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
@@ -667,6 +681,7 @@ function renderPartner() {
 }
 
 function bind() {
+  document.querySelector("[data-retry-portal]")?.addEventListener("click",()=>{portalError=false;render();});
   document.querySelectorAll("[data-page]").forEach((el) => el.addEventListener("click", (event) => { if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault(); setPage(el.dataset.page); }));
   const menuButton = document.querySelector("[data-menu]");
   const menu = document.querySelector("[data-nav]");
@@ -752,10 +767,12 @@ function bindAttachments() {
     try {
       if(files.length>5 || files.reduce((sum,f)=>sum+f.size,0)>8*1024*1024) throw Error('Sélectionnez au maximum 5 fichiers et 8 Mo au total.');
       for(const file of files) await validateAttachment(file);
+      if(!input.isConnected)return;
       requestAttachments=files;
+      document.querySelector("[data-clear-files]").hidden=!files.length;
       document.querySelector('#attachment-status').textContent=files.map(f=>f.name).join(' · ') || 'Aucun fichier sélectionné.';
       document.querySelector('[data-request-error]').textContent='';
-    } catch(error) {input.value='';showRequestError(error.message);}
+    } catch(error) {input.value='';if(input.isConnected)showRequestError(error.message);}
     finally {if(next)next.disabled=false;}
   });
 }
@@ -817,10 +834,12 @@ function sendProjectByEmail(draft, sourceForm) {
   const delivery = document.createElement("form");
   delivery.method = "POST";
   delivery.enctype = "multipart/form-data";
+  try {
   for (const [index,file] of (draft.subject ? [] : requestAttachments).entries()) {
     const input=document.createElement("input"), transfer=new DataTransfer();
     input.type="file"; input.name=index ? "attachment"+index : "attachment"; transfer.items.add(file); input.files=transfer.files; delivery.appendChild(input);
   }
+  } catch { const error=sourceForm.querySelector("[data-send-status]");if(error)error.textContent="Votre navigateur ne permet pas de joindre ces fichiers. Retirez-les ou utilisez un navigateur récent.";return; }
   delivery.action = "https://formsubmit.co/contact.travauxcorse@gmail.com";
   delivery.hidden = true;
   for (const [name, value] of Object.entries(payload)) {
@@ -939,8 +958,8 @@ function buildTimeline(request) {
   return timeline;
 }
 
-window.addEventListener("popstate", () => { captureRequestDraft(); state.page = pageFromUrl(); render(); });
-window.addEventListener("hashchange", () => { captureRequestDraft(); state.page = pageFromUrl(); render(); });
+window.addEventListener("popstate", () => { if(location.hash === "#main-content")return;captureRequestDraft(); state.page = pageFromUrl(); render(); });
+window.addEventListener("hashchange", () => { if(location.hash === "#main-content")return;captureRequestDraft(); state.page = pageFromUrl(); render(); });
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   const menu = document.querySelector("[data-nav]");

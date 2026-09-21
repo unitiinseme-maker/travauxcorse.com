@@ -19,3 +19,5 @@ button.onclick=async()=>{
  }
  button.disabled=false;
 };
+const allButton=document.createElement('button');allButton.type='button';allButton.className='secondary';allButton.textContent='Tester toutes les pages';button.after(allButton);
+allButton.onclick=async()=>{allButton.disabled=true;const allResults={};try{for(const option of route.options){route.value=option.value;await button.onclick();allResults[option.textContent]=JSON.parse(output.textContent);}output.textContent=JSON.stringify(allResults,null,2);document.querySelector('#status').textContent='Terminé : '+Object.keys(allResults).length+' pages et '+Object.values(allResults).flat().length+' contrôles';}catch(error){document.querySelector('#status').textContent=error.message;}finally{allButton.disabled=false;}};
