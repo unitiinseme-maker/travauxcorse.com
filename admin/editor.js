@@ -45,9 +45,10 @@
     if(['draft','publish'].includes(action)&&!$('#content-form').reportValidity())return;
     if(action==='publish'&&!confirm('Publier ce contenu et ses photos pour tous les visiteurs du site ?'))return;
     if(['delete','unpublish'].includes(action)&&!confirm(action==='delete'?'Supprimer ce contenu et sa page publique ?':'Retirer cette page du site public et conserver le brouillon ?'))return;
+    const content=doc();
     busy=true;controls();message(action==='draft'?'Enregistrement du brouillon…':'Enregistrement de la publication…');
     try{
-      const result=await api({action,id:current,doc:doc(),version});entries=result.entries;version=result.version;dirty=false;
+      const result=await api({action,id:current,doc:content,version});entries=result.entries;version=result.version;dirty=false;
       const updated=entries.find(item=>item.id===current);await open(updated);
       message(result.publicationQueued?'Enregistré. La mise à jour du site est en cours ; elle apparaîtra après le déploiement.':'Brouillon enregistré en ligne. Le contenu public reste inchangé.');
     }catch(error){message(error.message,true);}finally{busy=false;controls();}
