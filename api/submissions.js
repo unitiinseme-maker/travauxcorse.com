@@ -32,7 +32,7 @@ module.exports=async function(req,res){
   if(req.method!=='GET'){res.setHeader('Allow','GET');return json(res,405,{error:'Méthode non autorisée.'});}
   const c=cmsConfig();
   if(!c.secret||!c.password||!cmsSession(req,c))return json(res,401,{error:'Connectez-vous avec le mot de passe privé de publication.'});
-  const apiKey=process.env.FORMSUBMIT_API_KEY?.trim();
+  const apiKey=(process.env.FORMSUBMIT_API_KEY||process.env.FORMSUBMITAPI_KEY)?.trim();
   if(!apiKey)return json(res,503,{setup:true,error:'L’archive des demandes doit être activée avec la clé API FormSubmit.'});
   if(cache.key===apiKey&&cache.until>Date.now())return json(res,200,{requests:cache.items,updatedAt:new Date(cache.until-3600000).toISOString()});
   try{
