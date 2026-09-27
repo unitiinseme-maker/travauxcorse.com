@@ -44,3 +44,5 @@ module.exports=async function(req,res){
     return send(res,200,await createStore(c).save(body));
   }catch(error){return send(res,error instanceof SyntaxError?400:error.status||500,{error:error.status?error.message:'L’enregistrement a échoué. Votre saisie est conservée à l’écran ; réessayez.'});}
 };
+module.exports.cmsSession=session;
+module.exports.cmsConfig=config;
