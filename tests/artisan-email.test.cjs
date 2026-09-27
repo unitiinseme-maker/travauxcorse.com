@@ -27,6 +27,9 @@ test('Gmail sends artisan notification without a domain and reports SMTP failure
   const transport=mock.method(nodemailer,'createTransport',options=>({sendMail:async(message)=>{messages.push(message);},close:()=>{}}));
   try{
     delete process.env.RESEND_API_KEY;delete process.env.RESEND_FROM;
+    process.env.GMAIL_APP_PASSWORD='A_RENSEIGNER';
+    assert.equal(emailConfigured(),false);
+    assert.equal((await sendEmail('artisan@example.fr','Nouveau projet','Bonjour')).sent,false);
     process.env.GMAIL_APP_PASSWORD='test app password';
     assert.equal(emailConfigured(),true);
     assert.equal((await sendEmail('artisan@example.fr','Nouveau projet','Bonjour')).sent,true);
