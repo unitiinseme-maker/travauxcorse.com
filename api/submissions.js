@@ -37,7 +37,12 @@ module.exports=async function(req,res){
   if(cache.key===apiKey&&cache.until>Date.now())return json(res,200,{requests:cache.items,updatedAt:new Date(cache.until-3600000).toISOString()});
   try{
     const response=await fetch('https://formsubmit.co/api/get-submissions/'+encodeURIComponent(apiKey),{headers:{Accept:'application/json'},signal:AbortSignal.timeout(12000)});
-    if(!response.ok)return json(res,502,{error:'Impossible de consulter l’archive FormSubmit. Vérifiez la clé API ou réessayez plus tard.'});
+    if(!response.ok){
+      const status=response.status;
+      console.error('FormSubmit archive returned HTTP',status);
+      const error=status===429?'Limite de consultation quotidienne de FormSubmit atteinte. Les demandes restent reçues par email.':status===401||status===403?'FormSubmit refuse l’accès du serveur à l’archive (HTTP '+status+'). La clé est enregistrée ; contactez-nous avec ce code.':'FormSubmit ne répond pas à la consultation (HTTP '+status+'). Réessayez plus tard.';
+      return json(res,502,{error,upstreamStatus:status});
+    }
     const size=Number(response.headers.get('content-length')||0);
     if(size>2000000)return json(res,502,{error:'L’archive est trop volumineuse pour cet affichage.'});
     const body=await response.text();
