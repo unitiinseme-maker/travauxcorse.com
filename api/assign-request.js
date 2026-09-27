@@ -26,7 +26,7 @@ module.exports=async function(req,res){
     if(raw.length>30000)return send(res,413,{error:'Dossier trop volumineux.'});
     const item=normalizeRequest(JSON.parse(raw));
     if(!item)return send(res,400,{error:'Dossier illisible.'});
-    let profile=null;
+    let profile=null,assignment=null;
     if(body.action==='assign'){
       if(body.artisanId){profile=await readArtisan(body.artisanId);if(!profile||!profile.active)return send(res,404,{error:'Artisan enregistré introuvable.'});}
       const name=profile?.name|| (typeof body.name==='string'?body.name.trim().slice(0,120):'');
@@ -34,24 +34,32 @@ module.exports=async function(req,res){
       if(!name||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom et une adresse e-mail valide pour l’artisan.'});
       if(item.assignedArtisans.some(a=>a.email.toLowerCase()===email))return send(res,409,{error:'Cet artisan est déjà affecté à ce dossier.'});
       if(item.assignedArtisans.length>=10)return send(res,400,{error:'Ce dossier comporte déjà dix artisans.'});
-      item.assignedArtisans.push({id:crypto.randomUUID(),name,email,at:new Date().toISOString(),artisanId:profile?.id||'',notified:false});
+      assignment={id:crypto.randomUUID(),name,email,at:new Date().toISOString(),artisanId:profile?.id||'',notified:false};
+      item.assignedArtisans.push(assignment);
+    }else if(body.action==='notify'){
+      assignment=item.assignedArtisans.find(a=>a.id===body.assignmentId);
+      if(!assignment)return send(res,404,{error:'Affectation introuvable.'});
+      if(assignment.notified)return send(res,409,{error:'La notification a déjà été envoyée.'});
+      if(!assignment.artisanId)return send(res,400,{error:'Enregistrez cet artisan dans le répertoire avant de lui envoyer une invitation.'});
+      profile=await readArtisan(assignment.artisanId);
+      if(!profile?.active||profile.email!==assignment.email)return send(res,404,{error:'Le profil de cet artisan est introuvable.'});
     }else if(body.action==='remove'){
       const before=item.assignedArtisans.length;
       item.assignedArtisans=item.assignedArtisans.filter(a=>a.id!==body.assignmentId);
       if(before===item.assignedArtisans.length)return send(res,404,{error:'Affectation introuvable.'});
     }else return send(res,400,{error:'Action non reconnue.'});
-    await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
-    let notificationSent=false,inviteUrl;
+    if(body.action!=='notify')await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
+    let notificationSent=false,inviteUrl,notificationError;
     if(profile){
       try{
         const invite=newInvite(profile);await saveArtisan(profile);
         const email=await sendEmail(profile.email,'Un nouveau projet vous est affecté | TravauxCorse',
           'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté sur TravauxCorse.\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\n\nConsultez votre espace privé : '+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');
         notificationSent=email.sent;
-        if(notificationSent){item.assignedArtisans.at(-1).notified=true;await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});}
-        else inviteUrl=invite.url;
-      }catch(error){console.error('Artisan notification failed',error?.message);}
+        if(notificationSent){assignment.notified=true;await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});}
+        else{inviteUrl=invite.url;notificationError=email.reason;}
+      }catch(error){console.error('Artisan notification failed',error?.message);notificationError='La notification n’a pas pu être envoyée.';}
     }
-    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans,notificationSent,inviteUrl});
+    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans,notificationSent,notificationError,inviteUrl,artisanId:profile?.id});
   }catch(error){console.error('Request assignment failed',error?.message);return send(res,error instanceof SyntaxError?400:503,{error:'L’affectation n’a pas pu être enregistrée. Réessayez.'});}
 };

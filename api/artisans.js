@@ -37,6 +37,6 @@ module.exports=async function(req,res){
     let delivery={sent:false};
     try{delivery=await sendEmail(profile.email,'Votre accès aux projets TravauxCorse','Bonjour '+profile.name+',\n\nVoici votre accès personnel aux projets qui vous seront affectés :\n'+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');}
     catch(error){console.error('Artisan invitation delivery failed',error?.message);}
-    return send(res,200,{artisan:publicProfile(profile),invitationSent:delivery.sent,inviteUrl:delivery.sent?undefined:invite.url});
+    return send(res,200,{artisan:publicProfile(profile),invitationSent:delivery.sent,deliveryError:delivery.sent?undefined:delivery.reason,inviteUrl:delivery.sent?undefined:invite.url});
   }catch(error){console.error('Artisan directory write failed',error?.message);return send(res,503,{error:'Impossible d’enregistrer cet artisan.'});}
 };
