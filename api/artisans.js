@@ -1,6 +1,6 @@
 const crypto=require('node:crypto');
 const {cmsSession,cmsConfig}=require('./editorial');
-const {listArtisans,readArtisan,saveArtisan,newInvite,sendEmail}=require('../lib/artisan-accounts');
+const {listArtisans,readArtisan,saveArtisan,newInvite,emailConfigured,sendEmail}=require('../lib/artisan-accounts');
 const send=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
 const publicProfile=p=>({id:p.id,name:p.name,email:p.email,trades:p.trades,active:p.active,createdAt:p.createdAt});
 module.exports=async function(req,res){
@@ -8,7 +8,7 @@ module.exports=async function(req,res){
   const config=cmsConfig(),session=config.secret&&config.password?cmsSession(req,config):null;
   if(!session)return send(res,401,{error:'Connexion administrateur nécessaire.'});
   if(req.method==='GET'){
-    try{return send(res,200,{artisans:(await listArtisans()).map(publicProfile),emailConfigured:!!(process.env.RESEND_API_KEY&&process.env.RESEND_FROM)});}
+    try{return send(res,200,{artisans:(await listArtisans()).map(publicProfile),emailConfigured:emailConfigured()});}
     catch(error){console.error('Artisan directory read failed',error?.message);return send(res,503,{error:'Répertoire momentanément indisponible.'});}
   }
   if(req.method!=='POST'){res.setHeader('Allow','GET, POST');return send(res,405,{error:'Méthode non autorisée.'});}

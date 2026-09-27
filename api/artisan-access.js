@@ -1,6 +1,6 @@
 const {list,get}=require('@vercel/blob');
 const {normalizeRequest}=require('../lib/project-request');
-const {hash,readArtisan,listArtisans,saveArtisan,newInvite,sessionCookie,parseSession,sendEmail}=require('../lib/artisan-accounts');
+const {hash,readArtisan,listArtisans,saveArtisan,newInvite,sessionCookie,parseSession,emailConfigured,sendEmail}=require('../lib/artisan-accounts');
 const attempts=new Map();
 const send=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
 async function projectsFor(profile){
@@ -57,7 +57,7 @@ module.exports=async function(req,res){
     if(body.action==='request-link'){
       const email=typeof body.email==='string'?body.email.trim().toLowerCase().slice(0,254):'';
       if(!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Adresse e-mail invalide.'});
-      if(process.env.RESEND_API_KEY&&process.env.RESEND_FROM){
+      if(emailConfigured()){
         const profile=(await listArtisans()).find(p=>p.active&&p.email===email);
         if(profile){const invite=newInvite(profile);await saveArtisan(profile);try{await sendEmail(email,'Votre accès TravauxCorse','Bonjour '+profile.name+',\n\nAccédez à vos projets : '+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');}catch(error){console.error('Artisan access email failed',error?.message);}}
       }
