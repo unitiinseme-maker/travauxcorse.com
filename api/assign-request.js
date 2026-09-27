@@ -2,6 +2,7 @@ const crypto=require('node:crypto');
 const {get,put}=require('@vercel/blob');
 const {cmsSession,cmsConfig}=require('./editorial');
 const {normalizeRequest}=require('../lib/project-request');
+const {readArtisan,saveArtisan,newInvite,sendEmail}=require('../lib/artisan-accounts');
 const send=(res,status,value)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(value));};
 const match=(a,b)=>{const x=crypto.createHash('sha256').update(String(a)).digest(),y=crypto.createHash('sha256').update(String(b)).digest();return crypto.timingSafeEqual(x,y);};
 module.exports=async function(req,res){
@@ -25,19 +26,32 @@ module.exports=async function(req,res){
     if(raw.length>30000)return send(res,413,{error:'Dossier trop volumineux.'});
     const item=normalizeRequest(JSON.parse(raw));
     if(!item)return send(res,400,{error:'Dossier illisible.'});
+    let profile=null;
     if(body.action==='assign'){
-      const name=typeof body.name==='string'?body.name.trim().slice(0,120):'';
-      const email=typeof body.email==='string'?body.email.trim().toLowerCase().slice(0,254):'';
+      if(body.artisanId){profile=await readArtisan(body.artisanId);if(!profile||!profile.active)return send(res,404,{error:'Artisan enregistré introuvable.'});}
+      const name=profile?.name|| (typeof body.name==='string'?body.name.trim().slice(0,120):'');
+      const email=profile?.email|| (typeof body.email==='string'?body.email.trim().toLowerCase().slice(0,254):'');
       if(!name||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom et une adresse e-mail valide pour l’artisan.'});
       if(item.assignedArtisans.some(a=>a.email.toLowerCase()===email))return send(res,409,{error:'Cet artisan est déjà affecté à ce dossier.'});
       if(item.assignedArtisans.length>=10)return send(res,400,{error:'Ce dossier comporte déjà dix artisans.'});
-      item.assignedArtisans.push({id:crypto.randomUUID(),name,email,at:new Date().toISOString()});
+      item.assignedArtisans.push({id:crypto.randomUUID(),name,email,at:new Date().toISOString(),artisanId:profile?.id||'',notified:false});
     }else if(body.action==='remove'){
       const before=item.assignedArtisans.length;
       item.assignedArtisans=item.assignedArtisans.filter(a=>a.id!==body.assignmentId);
       if(before===item.assignedArtisans.length)return send(res,404,{error:'Affectation introuvable.'});
     }else return send(res,400,{error:'Action non reconnue.'});
     await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
-    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans});
+    let notificationSent=false,inviteUrl;
+    if(profile){
+      try{
+        const invite=newInvite(profile);await saveArtisan(profile);
+        const email=await sendEmail(profile.email,'Un nouveau projet vous est affecté | TravauxCorse',
+          'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté sur TravauxCorse.\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\n\nConsultez votre espace privé : '+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');
+        notificationSent=email.sent;
+        if(notificationSent){item.assignedArtisans.at(-1).notified=true;await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});}
+        else inviteUrl=invite.url;
+      }catch(error){console.error('Artisan notification failed',error?.message);}
+    }
+    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans,notificationSent,inviteUrl});
   }catch(error){console.error('Request assignment failed',error?.message);return send(res,error instanceof SyntaxError?400:503,{error:'L’affectation n’a pas pu être enregistrée. Réessayez.'});}
 };
