@@ -4,7 +4,7 @@
   function line(parent,label,value){if(!value)return;const row=document.createElement('p');const strong=document.createElement('strong');strong.textContent=label+' : ';row.append(strong,document.createTextNode(value));parent.append(row);}
   function draw(items){
     list.replaceChildren();
-    if(!items.length){const empty=document.createElement('p');empty.textContent='Aucune demande de travaux dans l’archive récente.';list.append(empty);return;}
+    if(!items.length){const empty=document.createElement('p');empty.textContent='Aucune demande de travaux enregistrée.';list.append(empty);return;}
     for(const item of items){
       const card=document.createElement('article');card.className='portal-card';
       const heading=document.createElement('h2');heading.textContent=item.title||'Demande de travaux';card.append(heading);
@@ -20,7 +20,7 @@
       if(response.status===401){login.hidden=false;setup.hidden=true;status.textContent='Connectez-vous pour consulter les demandes.';return;}
       login.hidden=true;setup.hidden=!data.setup;
       if(!response.ok)throw Error(data.error||'Impossible de charger les demandes.');
-      draw(data.requests);status.textContent=data.requests.length+' demande(s) dans l’archive récente.';
+      draw(data.requests);status.textContent=data.requests.length+' demande(s) enregistrée(s).';
     }catch(error){status.textContent=error.message;}
   }
   login.addEventListener('submit',async event=>{
