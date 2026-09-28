@@ -1446,3 +1446,5 @@ input[type=checkbox],input[type=radio]{width:20px;min-width:20px;height:20px;min
 .tc-header .tc-actions a:hover, .primary:hover, button.primary:hover, .article-aside a:hover, .guide-card a:hover { background:var(--color-primary-hover);color:#fff; }
 .tc-header .tc-actions a:active, .primary:active, button.primary:active { background:var(--color-primary-active);color:#fff; }
 :where(a,button,input,select,textarea,summary):focus-visible { outline-color:var(--color-primary-ink); }
+.portal-user>span, .avatar, .supply-flow span, .flow-steps span, .role-buttons button { color:#24211e; }
+.stepper button.active span { opacity:1; }
