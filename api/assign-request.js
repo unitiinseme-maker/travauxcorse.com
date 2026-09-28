@@ -2,7 +2,7 @@ const crypto=require('node:crypto');
 const {get,put}=require('@vercel/blob');
 const {cmsSession,cmsConfig}=require('./editorial');
 const {normalizeRequest}=require('../lib/project-request');
-const {readArtisan,saveArtisan,newInvite,sendEmail}=require('../lib/artisan-accounts');
+const {readArtisan,sendEmail}=require('../lib/artisan-accounts');
 const send=(res,status,value)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(value));};
 const match=(a,b)=>{const x=crypto.createHash('sha256').update(String(a)).digest(),y=crypto.createHash('sha256').update(String(b)).digest();return crypto.timingSafeEqual(x,y);};
 module.exports=async function(req,res){
@@ -60,17 +60,16 @@ module.exports=async function(req,res){
       item.history.push({at:new Date().toISOString(),text:'Message envoyé au client par TravauxCorse'});
     }else return send(res,400,{error:'Action non reconnue.'});
     if(body.action!=='notify')await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
-    let notificationSent=false,inviteUrl,notificationError;
+    let notificationSent=false,notificationError;
     if(profile){
       try{
-        const invite=newInvite(profile);await saveArtisan(profile);
         const email=await sendEmail(profile.email,'Un nouveau projet vous est affecté | TravauxCorse',
-          'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté sur TravauxCorse.\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\n\nConsultez votre espace privé : '+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');
+          'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté par TravauxCorse.\n\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\nDélai : '+(item.delay||'Non précisé')+'\nBudget : '+(item.budget||'Non précisé')+'\n\nDescription :\n'+(item.description||'Non précisée')+'\n\nMerci de répondre directement à cet e-mail pour nous confirmer votre intérêt.\n\nTravauxCorse\ncontact.travauxcorse@gmail.com');
         notificationSent=email.sent;
         if(notificationSent){assignment.notified=true;await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});}
-        else{inviteUrl=invite.url;notificationError=email.reason;}
+        else notificationError=email.reason;
       }catch(error){console.error('Artisan notification failed',error?.message);notificationError='La notification n’a pas pu être envoyée.';}
     }
-    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans,notificationSent,notificationError,inviteUrl,artisanId:profile?.id});
+    return send(res,200,{ok:true,assignedArtisans:item.assignedArtisans,notificationSent,notificationError,artisanId:profile?.id});
   }catch(error){console.error('Request assignment failed',error?.message);return send(res,error instanceof SyntaxError?400:503,{error:'L’affectation n’a pas pu être enregistrée. Réessayez.'});}
 };
