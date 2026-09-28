@@ -69,5 +69,17 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/client/mes-projets/:path*",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/artisan/mes-projets/:path*",
+      "destination": "/",
+      "permanent": false
+    }
   ]
 }
