@@ -1341,17 +1341,17 @@ body,.editorial-page{background:#f5f7fa}
 @media(max-width:850px){.content-admin-grid{grid-template-columns:1fr}.content-admin-grid>aside{max-height:330px;overflow:auto}.content-admin-grid>div{padding:16px}}
 @media(max-width:600px){.trade-choices,.editor-images{grid-template-columns:1fr}.editor-toolbar>button{width:100%}}
 
-/* Footer based on the supplied reference, identical on every page. */
-.tc-footer{background:#061c29;color:#f1f4f5;padding:clamp(36px,6vw,76px) clamp(24px,6vw,84px) clamp(32px,5vw,64px);font-family:Montserrat,ui-sans-serif,system-ui,sans-serif}
-.tc-footer-inner{max-width:1272px;margin:0 auto;border-top:2px solid #36505e;padding-top:clamp(32px,5vw,56px)}
-.tc-footer-copyright{margin:0 0 36px;color:#f1f4f5;font-size:clamp(15px,1.5vw,21px);font-weight:400;line-height:1.6;letter-spacing:.055em}
-.tc-footer-links{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
-.tc-footer-links a{display:inline-flex;align-items:center;min-height:44px;color:#f1f4f5;text-decoration:none;text-transform:uppercase;font-size:clamp(15px,1.5vw,21px);font-weight:400;line-height:1.5;letter-spacing:.08em}
+/* Shared footer: compact type and spacing, with comfortable link targets. */
+.tc-footer{background:#061c29;color:#f1f4f5;padding:30px clamp(20px,5vw,64px) 34px;font-family:Montserrat,ui-sans-serif,system-ui,sans-serif}
+.tc-footer-inner{max-width:1272px;margin:0 auto;border-top:1px solid #36505e;padding-top:18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 28px}
+.tc-footer-copyright{margin:0;color:#f1f4f5;font-size:13px;font-weight:400;line-height:1.5;letter-spacing:.025em}
+.tc-footer-links{display:flex;flex-wrap:wrap;align-items:center;gap:4px 20px}
+.tc-footer-links a{display:inline-flex;align-items:center;min-height:44px;color:#f1f4f5;text-decoration:none;font-size:13px;font-weight:400;line-height:1.5;letter-spacing:.01em}
 .tc-footer-links a:hover{text-decoration:underline;text-underline-offset:6px}
 .tc-footer-links a:focus-visible{outline:2px solid #f28c00;outline-offset:6px}
 .legal-body{margin-top:32px;max-width:1000px}.legal-body a{color:#0c567b;overflow-wrap:anywhere;text-underline-offset:3px}
 .auth-choice{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media(max-width:760px){.auth-choice{grid-template-columns:1fr}.tc-footer{padding:40px 24px}.tc-footer-copyright{margin-bottom:28px}}
+@media(max-width:760px){.auth-choice{grid-template-columns:1fr}.tc-footer{padding:24px 20px 28px}.tc-footer-inner{display:block;padding-top:16px}.tc-footer-copyright{margin-bottom:8px}.tc-footer-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}}
 
 
 /* TravauxCorse: shared palette, usable controls and responsive content. */
