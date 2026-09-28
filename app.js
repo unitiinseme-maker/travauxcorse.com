@@ -236,7 +236,7 @@ function loadPortal(){
 }
 let requestAttachments = [];
 let state = loadState();
-const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"]);
+const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "registerPartner", "partnerSpace", "admin"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
   if (route === "deposer") return "request";
@@ -348,7 +348,7 @@ function render() {
 }
 
 function renderHeader() {
-  return `<header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" ${state.page === "home" ? 'aria-current="page"' : ""}>Accueil</a><a href="/travaux-energetiques/" data-page="energy" ${state.page === "energy" ? 'aria-current="page"' : ""}>Travaux énergétiques</a><a href="/conseils/" data-page="advice" ${state.page === "advice" ? 'aria-current="page"' : ""}>Conseils &amp; guides</a><a href="/realisations/" data-page="references" ${state.page === "references" ? 'aria-current="page"' : ""}>Réalisations</a><a href="/partenaires/" data-page="suppliers" ${state.page === "suppliers" ? 'aria-current="page"' : ""}>Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/deposer-une-demande/">Déposer une demande</a><a data-page="login" href="/#login">Connexion</a></div></header>`;
+  return `<header class="tc-header"><a class="tc-brand" href="/" aria-label="TravauxCorse — Accueil"><span>${escapeHtml(state.siteSettings.brandTop)}</span>${escapeHtml(state.siteSettings.brandBottom)}<small>${escapeHtml(state.siteSettings.tagline)}</small></a><button class="tc-menu" type="button" data-tc-menu aria-controls="tc-navigation" aria-expanded="false">Menu <span aria-hidden="true">☰</span></button><nav class="tc-nav" id="tc-navigation" aria-label="Navigation principale"><a href="/" data-page="home" ${state.page === "home" ? 'aria-current="page"' : ""}>Accueil</a><a href="/travaux-energetiques/" data-page="energy" ${state.page === "energy" ? 'aria-current="page"' : ""}>Travaux énergétiques</a><a href="/conseils/" data-page="advice" ${state.page === "advice" ? 'aria-current="page"' : ""}>Conseils &amp; guides</a><a href="/realisations/" data-page="references" ${state.page === "references" ? 'aria-current="page"' : ""}>Réalisations</a><a href="/partenaires/" data-page="suppliers" ${state.page === "suppliers" ? 'aria-current="page"' : ""}>Nos partenaires</a></nav><div class="tc-actions"><a data-page="request" href="/deposer-une-demande/">Déposer une demande</a></div></header>`;
 }
 
 function renderFooter() {
