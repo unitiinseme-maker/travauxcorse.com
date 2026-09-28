@@ -1,0 +1,34 @@
+const {test}=require('node:test');
+const assert=require('node:assert/strict');
+const crypto=require('node:crypto');
+const blob=require('@vercel/blob');
+const entries=new Map(),originals={list:blob.list,get:blob.get,put:blob.put,del:blob.del};
+blob.list=async({prefix})=>({blobs:[...entries.keys()].filter(path=>path.startsWith(prefix)).map(path=>({pathname:path})),hasMore:false});
+blob.get=async path=>entries.has(path)?{statusCode:200,stream:new Blob([entries.get(path)]).stream()}:null;
+blob.put=async(path,value,options)=>{assert.equal(options.access,'private');entries.set(path,String(value));};
+blob.del=async path=>{entries.delete(path);};
+const handler=require('../api/partners');Object.assign(blob,originals);
+const secret='s'.repeat(64),password='private-partner-password-123456789';
+process.env.CMS_SECRET=secret;process.env.CMS_ADMIN_PASSWORD=password;
+const payload=Buffer.from(JSON.stringify({exp:Date.now()+360000,nonce:'partner-test',password:crypto.createHash('sha256').update(password).digest('hex')})).toString('base64url');
+const cookie='__Host-tc-editor='+payload+'.'+crypto.createHmac('sha256',secret).update(payload).digest('base64url');
+const csrf=crypto.createHmac('sha256',secret).update('partner-test').digest('base64url');
+const headers={cookie,'x-csrf-token':csrf,origin:'https://travauxcorse-com.vercel.app','content-type':'application/json'};
+function call(method,url,body,head={}){return new Promise((resolve,reject)=>{const res={setHeader(){},end:value=>resolve({status:res.statusCode,data:JSON.parse(value)})};handler({method,url,body,headers:head},res).catch(reject);});}
+test('public lists only real published partners; private editing, hiding and deletion need administrator',async()=>{
+  let r=await call('GET','/api/partners');assert.deepEqual(r.data.partners,[]);
+  r=await call('GET','/api/partners?admin=1');assert.equal(r.status,401);
+  r=await call('POST','/api/partners',{action:'save',name:'Entreprise réelle',category:'Matériaux'});assert.equal(r.status,401);
+  r=await call('POST','/api/partners',{action:'save',name:'Entreprise réelle',category:'Matériaux'},{...headers,'x-csrf-token':'bad'});assert.equal(r.status,403);
+  r=await call('POST','/api/partners',{action:'save',name:'Entreprise réelle',category:'Matériaux',website:'javascript:alert(1)'},headers);assert.equal(r.status,400);
+  r=await call('POST','/api/partners',{action:'save',name:'Entreprise réelle',category:'Matériaux',zone:'Bastia'},headers);assert.equal(r.status,200);const id=r.data.partner.id;assert.equal(r.data.partner.active,false);
+  r=await call('GET','/api/partners');assert.equal(r.data.partners.length,0);
+  r=await call('POST','/api/partners',{action:'toggle',id},headers);assert.equal(r.data.partner.active,true);
+  r=await call('GET','/api/partners');assert.equal(r.data.partners[0].name,'Entreprise réelle');
+  r=await call('POST','/api/partners',{action:'save',id,name:'Entreprise mise à jour',category:'Matériaux'},headers);assert.equal(r.status,200);
+  r=await call('GET','/api/partners');assert.equal(r.data.partners[0].name,'Entreprise mise à jour');
+  r=await call('POST','/api/partners',{action:'toggle',id},headers);assert.equal(r.data.partner.active,false);
+  r=await call('GET','/api/partners');assert.equal(r.data.partners.length,0);
+  r=await call('POST','/api/partners',{action:'delete',id},headers);assert.equal(r.status,200);
+  r=await call('GET','/api/partners?admin=1',null,headers);assert.equal(r.data.partners.length,0);
+});

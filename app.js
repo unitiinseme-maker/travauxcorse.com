@@ -197,14 +197,7 @@ const seed = {
   ],
   requestDraft: { step: 0, category: "", categories: [], title: "", description: "", commune: "", delay: "Sous 1 mois", budget: "", property: "", surface: "", files: "", name: "", email: "", phone: "" },
   filters: { q: "", trade: "", zone: "", energy: false, urgent: false, verified: true },
-  supplierPartners: [
-    { id: "sup-1", name: "Clim Distribution Corse", family: "Chauffage / Climatisation", zone: "Bastia · Ajaccio", badge: "Matériel pro", text: "Climatisations réversibles, pompes à chaleur air/air, accessoires de pose et consommables.", benefits: ["Devis client direct", "Références compatibles RGE", "Disponibilité stock Corse"] },
-    { id: "sup-2", name: "Élec Pro Méditerranée", family: "Électricité", zone: "Toute la Corse", badge: "Électricité", text: "Tableaux, protections, câbles, appareillage et solutions photovoltaïques résidentielles.", benefits: ["Commande préparée", "Conseil technique", "Livraison chantier"] },
-    { id: "sup-3", name: "Menuiseries Insulaires", family: "Menuiseries extérieures", zone: "Corse-du-Sud", badge: "Isolation", text: "Fenêtres, portes, volets et menuiseries performantes adaptées au climat corse.", benefits: ["Achat direct client", "Fiches techniques", "Pose coordonnée"] },
-    { id: "sup-4", name: "Sanitaire & Plomberie Corse", family: "Plomberie", zone: "Haute-Corse", badge: "Sanitaire", text: "Équipements sanitaires, chauffe-eau, robinetterie, raccords et fournitures plomberie.", benefits: ["Prix négociés réseau", "Retrait comptoir", "Suivi des garanties"] },
-    { id: "sup-5", name: "Isolation Méditerranée", family: "Isolation", zone: "Toute la Corse", badge: "Énergie", text: "Isolants combles, murs, planchers, membranes, accessoires et systèmes d'étanchéité à l'air.", benefits: ["Solutions certifiées", "Aide au choix produit", "Quantitatif projet"] },
-    { id: "sup-6", name: "Matériaux Bâtiment Corse", family: "Gros œuvre / Second œuvre", zone: "Ajaccio · Porto-Vecchio", badge: "Matériaux", text: "Matériaux de construction, carrelage, peinture, outillage et produits de finition.", benefits: ["Compte projet client", "Livraison groupée", "Remises partenaires"] }
-  ],
+  supplierPartners: [],
   artisans: [
     { id: "art-1", name: "Rénovation Globale Corse", city: "Porto-Vecchio", department: "Corse-du-Sud", trades: ["Rénovation complète", "Maçonnerie / Gros œuvre", "Peinture"], energy: ["Rénovation énergétique globale", "Audit énergétique"], rating: 4.9, reviews: 18, status: "Disponible", verified: true, premium: true, urgent: false, insurance: true, photos: true, text: "Rénovation globale clé en main, de l'audit aux travaux, avec accompagnement du projet." },
     { id: "art-2", name: "Plomberie Bastia Services", city: "Bastia", department: "Haute-Corse", trades: ["Plomberie", "Chauffage / Climatisation"], energy: ["Chauffage", "Eau chaude sanitaire"], rating: 4.9, reviews: 15, status: "Intervention urgente", verified: true, premium: false, urgent: true, insurance: true, photos: true, text: "Plombier-chauffagiste pour dépannage, installation et entretien à Bastia." },
@@ -236,6 +229,23 @@ function loadPortal(){
 }
 let requestAttachments = [];
 let state = loadState();
+let publicPartners=[];
+let partnersLoaded=false;
+let partnersLoadError=false;
+let partnersLoading=false;
+async function loadPublicPartners(){
+  if(partnersLoading)return;
+  partnersLoading=true;
+  try{
+    const response=await fetch('/api/partners',{cache:'no-store'});
+    if(!response.ok)throw Error('Partners unavailable');
+    const result=await response.json();
+    publicPartners=Array.isArray(result.partners)?result.partners:[];
+    partnersLoadError=false;
+  }catch{publicPartners=[];partnersLoadError=true;}
+  partnersLoaded=true;partnersLoading=false;
+  if(state.page==='suppliers')render();
+}
 const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "registerPartner", "partnerSpace", "admin"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
@@ -269,7 +279,7 @@ function normalizeState(next) {
   next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
   next.currentUserEmail = next.currentUserEmail || "";
-  next.supplierPartners = next.supplierPartners?.length ? next.supplierPartners : structuredClone(seed.supplierPartners);
+  next.supplierPartners = [];
   next.requests = (next.requests || []).map((request) => {
     const demo = request.id === "dem-1" ? byId(seed.requests, "dem-1") : null;
     return {
@@ -291,7 +301,7 @@ function normalizeState(next) {
 
 function saveState() {
   try {
-    const publicState = {siteSettings:state.siteSettings,customTrades:state.customTrades,tradeVersion:state.tradeVersion,artisans:state.artisans,supplierPartners:state.supplierPartners};
+    const publicState = {siteSettings:state.siteSettings,customTrades:state.customTrades,tradeVersion:state.tradeVersion,artisans:state.artisans};
     localStorage.setItem("travaux-corse-state", JSON.stringify(publicState));
     sessionStorage.setItem("travaux-corse-session", JSON.stringify(state));
   } catch {
@@ -315,6 +325,7 @@ function setPage(page) {
   }
   if (!applicationPages.has(page)) page = "home";
   state.page = page;
+  if(page==='suppliers')partnersLoaded=false;
   history.pushState(null, "", routePaths[page] || "/#" + page);
   saveState();
   render();
@@ -345,6 +356,7 @@ function render() {
   const description=document.querySelector('meta[name="description"]');if(description)description.content=({home:"TravauxCorse met en relation particuliers, artisans et fournisseurs pour vos travaux en Haute-Corse et Corse-du-Sud.",request:"Déposez un projet de travaux en Corse, sélectionnez plusieurs métiers et joignez vos photos ou plans.",energy:"Isolation, climatisation, chauffage et rénovation énergétique en Corse : préparez votre projet.",suppliers:"Organisez les matériaux et équipements de votre chantier en Corse avec TravauxCorse."})[state.page]||"Les services TravauxCorse pour votre projet en Corse.";
   if (state.page === "request") { const heading=document.querySelector('[data-request-form] h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   if (portalPages.has(state.page) && !window.TravauxCorsePortal && !portalLoading && !portalError) loadPortal();
+  if(state.page==='suppliers'&&!partnersLoaded)loadPublicPartners();
 }
 
 function renderHeader() {
@@ -562,10 +574,10 @@ function renderSuppliers() {
     <div class="section-head supplier-head">
       <p class="eyebrow">Matériel, équipements, matériaux</p>
       <h2>Un réseau pensé pour les chantiers corses</h2>
-      <p>Les partenaires présentés ci-dessous sont des exemples de familles que la plateforme peut référencer : chauffage, climatisation, électricité, menuiseries, isolation, sanitaire et matériaux.</p>
+      <p>Découvrez les entreprises partenaires du réseau TravauxCorse.</p>
     </div>
 
-    <div class="supplier-grid">${state.supplierPartners.filter((supplier) => !supplier.hidden).sort((a, b) => (a.order || 0) - (b.order || 0)).map(renderSupplierCard).join("")}</div>
+    <div class="supplier-grid" aria-live="polite">${partnersLoaded?(partnersLoadError?'<p>La liste des partenaires est momentanément indisponible. Réessayez plus tard.</p>':publicPartners.length?publicPartners.map(renderSupplierCard).join(''):'<p>Nos partenaires seront prochainement présentés ici.</p>'):'<p>Chargement des partenaires…</p>'}</div>
 
     <div class="supplier-note">
       <div>
@@ -580,11 +592,13 @@ function renderSuppliers() {
 
 function renderSupplierCard(supplier) {
   return `<article class="supplier-card">
-    <div class="supplier-badge">Exemple de fournisseur · ${escapeHtml(supplier.badge)}</div>
+    ${supplier.image?`<img class="supplier-image" src="${escapeHtml(supplier.image)}" alt="Logo ou photo de ${escapeHtml(supplier.name)}" loading="lazy">`:''}
+    <div class="supplier-badge">${escapeHtml(supplier.category)}</div>
     <h3>${escapeHtml(supplier.name)}</h3>
-    <p class="muted">${escapeHtml(supplier.family)} · ${escapeHtml(supplier.zone)}</p>
-    <p>${escapeHtml(supplier.text)}</p>
-    <div class="supplier-benefits">${supplier.benefits.map((benefit) => `<span>${escapeHtml(benefit)}</span>`).join("")}</div>
+    ${supplier.zone?`<p class="muted">Zone : ${escapeHtml(supplier.zone)}</p>`:''}
+    ${supplier.description?`<p>${escapeHtml(supplier.description)}</p>`:''}
+    ${supplier.specialties?`<p><strong>Spécialités :</strong> ${escapeHtml(supplier.specialties)}</p>`:''}
+    <div class="supplier-contact">${supplier.phone?`<a href="tel:${escapeHtml(supplier.phone.replace(/[^+\d]/g,''))}">${escapeHtml(supplier.phone)}</a>`:''}${supplier.email?`<a href="mailto:${escapeHtml(supplier.email)}">${escapeHtml(supplier.email)}</a>`:''}${supplier.website?`<a href="${escapeHtml(supplier.website)}" target="_blank" rel="noopener noreferrer">Site internet</a>`:''}</div>
   </article>`;
 }
 
