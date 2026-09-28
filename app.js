@@ -140,7 +140,6 @@ const seed = {
     statCategories: "20"
   },
   accounts: [
-    { role: "admin", email: "admin@travauxcorse.fr", name: "Administrateur TravauxCorse", password: "admin" },
     { role: "client", email: "sophie@example.fr", name: "Sophie P.", password: "client" },
     { role: "artisan", email: "artisan@travauxcorse.fr", name: "Entreprise partenaire", password: "artisan", artisanId: "art-5" }
   ],
@@ -167,7 +166,7 @@ const seed = {
 };
 
 const routePaths = {home:"/",energy:"/travaux-energetiques/",suppliers:"/partenaires/",request:"/deposer-une-demande/",partner:"/devenir-partenaire/"};
-const portalPages=new Set(["login","auth","signin","registerClient","registerCompany","registerPartner","forgot","client","artisanSpace","partnerSpace","admin"]);
+const portalPages=new Set(["login","auth","signin","registerClient","registerCompany","registerPartner","forgot","client","artisanSpace","partnerSpace"]);
 let portalLoading=false,portalError=false;
 function loadPortal(){
   portalLoading=true;
@@ -217,7 +216,7 @@ async function loadPublicPartners(){
   partnersLoaded=true;partnersLoading=false;
   if(state.page==='suppliers')render();
 }
-const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "registerPartner", "partnerSpace", "admin"]);
+const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "registerPartner", "partnerSpace"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
   if (route === "deposer") return "request";
@@ -249,6 +248,13 @@ function normalizeState(next) {
   delete next.tradeVersion;
   next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
+  // Discard old locally stored demo administrators and their simulated sessions.
+  next.accounts = next.accounts.filter((account) => account?.role !== "admin");
+  if (next.role === "admin" || next.page === "admin") {
+    next.role = "visiteur";
+    next.currentUserEmail = "";
+    next.page = "home";
+  }
   next.currentUserEmail = next.currentUserEmail || "";
   next.supplierPartners = [];
   next.requests = (next.requests || []).map((request) => {
@@ -318,7 +324,7 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
-      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace", "admin"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
+      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
       <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
@@ -361,8 +367,7 @@ function renderPage() {
     forgot: () => window.TravauxCorsePortal.render("forgot", state),
     client: () => window.TravauxCorsePortal.render("client", state),
     artisanSpace: () => window.TravauxCorsePortal.render("company", state),
-    partnerSpace: () => window.TravauxCorsePortal.render("partner", state),
-    admin: () => window.TravauxCorsePortal.render("admin", state)
+    partnerSpace: () => window.TravauxCorsePortal.render("partner", state)
   };
   return (pages[state.page] || renderHome)();
 }
@@ -896,45 +901,25 @@ function bindForms() {
     finally{form.dataset.sending='false';button.disabled=false;}
   });
   document.querySelectorAll("[data-role-login]").forEach((el) => el.addEventListener("click", () => {
+    if (el.dataset.roleLogin === "admin") return;
     state.role = el.dataset.roleLogin;
     const account = state.accounts.find((item) => item.role === state.role);
     state.currentUserEmail = account?.email || "";
-    state.page = el.dataset.roleLogin === "admin" ? "admin" : el.dataset.roleLogin === "artisan" ? "artisanSpace" : "client";
+    state.page = el.dataset.roleLogin === "artisan" ? "artisanSpace" : "client";
     saveState();
     render();
   }));
   document.querySelector("[data-login-form]")?.addEventListener("submit", (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(event.currentTarget));
-    const account = state.accounts.find((item) => item.email === data.email && item.password === data.password);
+    const account = state.accounts.find((item) => item.role !== "admin" && item.email === data.email && item.password === data.password);
     if (!account) {
       alert("Compte introuvable. Utilisez les comptes de test affichés ou choisissez un profil.");
       return;
     }
     state.role = account.role;
     state.currentUserEmail = account.email;
-    state.page = account.role === "admin" ? "admin" : account.role === "artisan" ? "artisanSpace" : "client";
-    saveState();
-    render();
-  });
-  document.querySelectorAll("[data-admin-request]").forEach((form) => form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const request = byId(state.requests, form.dataset.adminRequest);
-    if (!request) return;
-    const data = Object.fromEntries(new FormData(form));
-    const artisan = byId(state.artisans, data.assignedArtisanId);
-    request.status = data.status;
-    request.assignedSupplier = data.assignedSupplier;
-    request.assignedArtisanId = data.assignedArtisanId;
-    request.assignedArtisan = artisan?.name || "";
-    request.adminNote = data.adminNote;
-    request.timeline = buildTimeline(request);
-    saveState();
-    render();
-  }));
-  document.querySelector("[data-site-settings]")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    state.siteSettings = { ...state.siteSettings, ...Object.fromEntries(new FormData(event.currentTarget)) };
+    state.page = account.role === "artisan" ? "artisanSpace" : "client";
     saveState();
     render();
   });
