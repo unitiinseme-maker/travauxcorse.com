@@ -1,6 +1,6 @@
 const crypto=require('node:crypto');
 const {cmsSession,cmsConfig}=require('./editorial');
-const {listArtisans,readArtisan,saveArtisan,newInvite,emailConfigured,sendEmail}=require('../lib/artisan-accounts');
+const {listArtisans,saveArtisan,emailConfigured}=require('../lib/artisan-accounts');
 const send=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
 const publicProfile=p=>({id:p.id,name:p.name,email:p.email,trades:p.trades,active:p.active,createdAt:p.createdAt});
 module.exports=async function(req,res){
@@ -28,15 +28,10 @@ module.exports=async function(req,res){
       if(!name||!trades||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom, l’e-mail et le métier de l’artisan.'});
       if((await listArtisans()).some(p=>p.email===email))return send(res,409,{error:'Cet e-mail est déjà enregistré.'});
       profile={id:crypto.randomUUID(),name,email,trades,active:true,createdAt:new Date().toISOString()};
-    }else if(body.action==='invite'){
-      profile=await readArtisan(body.id);
-      if(!profile||!profile.active)return send(res,404,{error:'Artisan introuvable.'});
-    }else return send(res,400,{error:'Action inconnue.'});
-    const invite=newInvite(profile);
-    await saveArtisan(profile);
-    let delivery={sent:false};
-    try{delivery=await sendEmail(profile.email,'Votre accès aux projets TravauxCorse','Bonjour '+profile.name+',\n\nVoici votre accès personnel aux projets qui vous seront affectés :\n'+invite.url+'\n\nCe lien est valable 7 jours.\n\nTravauxCorse');}
-    catch(error){console.error('Artisan invitation delivery failed',error?.message);}
-    return send(res,200,{artisan:publicProfile(profile),invitationSent:delivery.sent,deliveryError:delivery.sent?undefined:delivery.reason,inviteUrl:delivery.sent?undefined:invite.url});
+      await saveArtisan(profile);
+      return send(res,200,{artisan:publicProfile(profile),saved:true});
+    }
+    if(body.action==='invite')return send(res,410,{error:'Les comptes artisans sont temporairement désactivés.'});
+    return send(res,400,{error:'Action inconnue.'});
   }catch(error){console.error('Artisan directory write failed',error?.message);return send(res,503,{error:'Impossible d’enregistrer cet artisan.'});}
 };
