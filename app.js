@@ -5,57 +5,6 @@ const today = () => new Date().toISOString().slice(0, 10);
 const byId = (items, id) => items.find((item) => item.id === id);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]));
 
-const trades = [
-  "Maçonnerie & Gros œuvre",
-  "Terrassement & VRD",
-  "Toiture & Charpente",
-  "Électricité",
-  "Plomberie & Sanitaire",
-  "Climatisation & Chauffage",
-  "Ventilation & VMC",
-  "Isolation & Rénovation énergétique",
-  "Menuiserie",
-  "Plâtrerie",
-  "Peinture",
-  "Carrelage",
-  "Façade",
-  "Serrurerie",
-  "Étanchéité",
-  "Piscine",
-  "Paysagisme",
-  "Photovoltaïque",
-  "Domotique",
-  "Alarme & Sécurité",
-  "Vidéosurveillance",
-  "Démolition",
-  "Désamiantage"
-];
-
-const legacyTrades = [
-  "Maçonnerie / Gros œuvre",
-  "Terrassement / VRD",
-  "Toiture / Charpente / Couverture",
-  "Étanchéité",
-  "Menuiseries extérieures",
-  "Menuiseries intérieures",
-  "Plâtrerie / Cloisons / Isolation",
-  "Peinture / Revêtements muraux",
-  "Carrelage / Revêtements de sols",
-  "Électricité",
-  "Plomberie",
-  "Chauffage / Climatisation",
-  "Ventilation / VMC",
-  "Serrurerie / Métallerie",
-  "Façade / Ravalement",
-  "Piscine",
-  "Jardin / Aménagement extérieur",
-  "Dépannage urgent",
-  "Rénovation complète",
-  "Travaux énergétiques",
-  "Photovoltaïque",
-  "Autre demande"
-];
-
 const energyTypes = [
   {
     title: "Isolation",
@@ -229,6 +178,28 @@ function loadPortal(){
 }
 let requestAttachments = [];
 let state = loadState();
+let categories=[];
+let categoriesLoaded=false;
+let categoryError=false;
+let categoriesLoading=false;
+async function loadPublicCategories(){
+  if(categoriesLoading)return;
+  categoriesLoading=true;
+  try{
+    const response=await fetch('/api/categories',{cache:'no-store',credentials:'omit'});
+    if(!response.ok)throw Error('Categories unavailable');
+    const result=await response.json();
+    if(!Array.isArray(result))throw Error('Invalid categories');
+    const changed=JSON.stringify(categories)!==JSON.stringify(result)||!categoriesLoaded;
+    if(changed&&categoriesLoaded)captureRequestDraft();
+    categories=result;
+    categoriesLoaded=true;
+    setDraftCategories(selectedCategories(state.requestDraft).filter(name=>activeTrades().includes(name)));
+    categoryError=false;
+    if(changed)render();
+  }catch{categories=[];categoryError=true;categoriesLoaded=true;render();}
+  finally{categoriesLoading=false;}
+}
 let publicPartners=[];
 let partnersLoaded=false;
 let partnersLoadError=false;
@@ -274,8 +245,8 @@ function normalizeState(next) {
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
   if (next.siteSettings.contactPhone === "04 95 00 00 00") next.siteSettings.contactPhone = seed.siteSettings.contactPhone;
   if (next.siteSettings.contactEmail === "contact@travauxcorse.fr") next.siteSettings.contactEmail = seed.siteSettings.contactEmail;
-  next.customTrades = Array.isArray(next.customTrades) && next.customTrades.length ? next.customTrades.filter(x => typeof x === "string" && x.trim()) : structuredClone(trades);
-  if (!next.tradeVersion) { next.customTrades = [...new Set([...trades, ...next.customTrades.filter(x => !legacyTrades.includes(x))])]; next.tradeVersion = 2; }
+  delete next.customTrades;
+  delete next.tradeVersion;
   next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
   next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
   next.currentUserEmail = next.currentUserEmail || "";
@@ -301,7 +272,7 @@ function normalizeState(next) {
 
 function saveState() {
   try {
-    const publicState = {siteSettings:state.siteSettings,customTrades:state.customTrades,tradeVersion:state.tradeVersion,artisans:state.artisans};
+    const publicState = {siteSettings:state.siteSettings,artisans:state.artisans};
     localStorage.setItem("travaux-corse-state", JSON.stringify(publicState));
     sessionStorage.setItem("travaux-corse-session", JSON.stringify(state));
   } catch {
@@ -338,8 +309,10 @@ function cta(label, page, cls = "") {
 }
 
 function activeTrades() {
-  return state.customTrades?.length ? state.customTrades : trades;
+  return categories.map(item=>item.name);
 }
+window.TravauxCorseTrades=activeTrades;
+function tradeStatus(){return categoryError?'Les catégories sont momentanément indisponibles. Rechargez la page pour réessayer.':categoriesLoaded?'Aucune catégorie publiée pour le moment.':'Chargement des catégories…';}
 
 function render() {
   document.querySelector("#app").innerHTML = `
@@ -419,14 +392,14 @@ function renderHome() {
       </div>
     </section>
     <section class="stats">
-      ${stat("2", "Départements : Haute-Corse et Corse-du-Sud")}${stat(activeTrades().length, "Métiers pour votre projet")}${stat("Gratuit", "Dépôt de demande")}${stat("À votre rythme", "Vous comparez et choisissez")}
+      ${stat("2", "Départements : Haute-Corse et Corse-du-Sud")}${stat(categoriesLoaded?activeTrades().length:'…', "Métiers pour votre projet")}${stat("Gratuit", "Dépôt de demande")}${stat("À votre rythme", "Vous comparez et choisissez")}
     </section>
     <section class="band">
       <p class="eyebrow">Simple et efficace</p>
       <h2>Comment ça marche ?</h2>
       <div class="steps">${["Vous déposez votre projet", "TravauxCorse identifie les professionnels", "L’artisan confirme son intervention", "Le fournisseur prépare les matériaux"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Particulier ou professionnel : précisez les travaux, la commune et vos attentes.", "Votre demande est examinée pour rechercher les entreprises adaptées à votre besoin.", "Vous échangez sur le chantier, comparez les devis et choisissez votre entreprise.", "Selon le projet, le partenaire fournit les matériaux. Vous pouvez aussi les acheter directement auprès de lui."][i]}</p></article>`).join("")}</div>
     </section>
-    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2><details class="trade-index"><summary>Voir les ${activeTrades().length} catégories de travaux</summary><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></details></section>
+    <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2>${activeTrades().length?`<details class="trade-index"><summary>Voir les ${activeTrades().length} catégories de travaux</summary><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></details>`:`<p role="status">${tradeStatus()}</p>`}</section>
     ${renderEnergyIntro()}
     </div>
   `;
@@ -458,8 +431,8 @@ function setDraftCategories(values) {
 }
 function renderTradeChoices(context) {
   const selected = selectedCategories(state.requestDraft);
-  const choices = [...new Set([...activeTrades(), ...selected])];
-  return `<fieldset class="trade-choices ${context === "home" ? "compact" : ""}"><legend class="sr-only">Catégories de travaux — plusieurs choix possibles</legend>${choices.map(t => `<label><input type="checkbox" data-trade-choice="${context}" value="${escapeHtml(t)}" ${selected.includes(t) ? "checked" : ""}><span>${escapeHtml(t)}</span></label>`).join("")}</fieldset>`;
+  const choices = activeTrades();
+  return choices.length?`<fieldset class="trade-choices ${context === "home" ? "compact" : ""}"><legend class="sr-only">Catégories de travaux — plusieurs choix possibles</legend>${choices.map(t => `<label><input type="checkbox" data-trade-choice="${context}" value="${escapeHtml(t)}" ${selected.includes(t) ? "checked" : ""}><span>${escapeHtml(t)}</span></label>`).join("")}</fieldset>`:`<p role="status">${tradeStatus()}</p>`;
 }
 
 function renderRequest() {
@@ -686,7 +659,7 @@ function renderPartner() {
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
         <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" minlength="8" maxlength="25" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
-        <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
+        <label>Métier principal<select name="trade" required>${activeTrades().length?'':`<option value="">${tradeStatus()}</option>`}${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
       <p>Vos coordonnées seront envoyées à TravauxCorse pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" name="contactConsent" value="oui" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status" aria-live="polite"></p><button class="primary" type="submit">Envoyer ma candidature</button>
@@ -708,6 +681,7 @@ function bind() {
     });
   }
   document.querySelector("[data-start-request]")?.addEventListener("click", () => {
+    if(!activeTrades().length){document.querySelector('[data-home-error]').textContent=tradeStatus();return;}
     setDraftCategories([...document.querySelectorAll('[data-trade-choice="home"]:checked')].map(el => el.value));
     if (!state.requestDraft.categories.length) {
       document.querySelector("[data-home-error]").textContent = "Choisissez au moins un métier pour continuer.";
@@ -754,7 +728,7 @@ function showRequestError(message) {
 
 function validateRequestStep() {
   const d = state.requestDraft;
-  if (d.step === 0 && !selectedCategories(d).length) {
+  if (d.step === 0 && (!activeTrades().length||!selectedCategories(d).some(name=>activeTrades().includes(name)))) {
     showRequestError("Choisissez au moins un métier pour continuer.");
     return false;
   }
@@ -812,7 +786,7 @@ function bindRequest() {
     if (state.requestDraft.step < 5) {
       state.requestDraft.step += 1;
     } else {
-      if (!state.requestDraft.category || !state.requestDraft.title.trim() || !state.requestDraft.commune.trim() || !state.requestDraft.name.trim() || !validPhone(state.requestDraft.phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.requestDraft.email)) {
+      if (!selectedCategories(state.requestDraft).some(name=>activeTrades().includes(name)) || !state.requestDraft.title.trim() || !state.requestDraft.commune.trim() || !state.requestDraft.name.trim() || !validPhone(state.requestDraft.phone) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.requestDraft.email)) {
         showRequestError("Complétez le projet, la commune et vos coordonnées en revenant aux étapes correspondantes.");
         return;
       }
@@ -995,3 +969,6 @@ document.addEventListener("keydown", (event) => {
   }
 });
 render();
+loadPublicCategories();
+window.addEventListener('pageshow',event=>{if(event.persisted)loadPublicCategories();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadPublicCategories();});

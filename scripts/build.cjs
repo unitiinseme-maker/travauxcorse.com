@@ -2,7 +2,7 @@
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const root=path.join(__dirname,'..');
 const scope={Intl,structuredClone,location:{hash:'',pathname:'/'},localStorage:{getItem(){return null}},window:{addEventListener(){}},document:{addEventListener(){}}};
-vm.createContext(scope);vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,''),scope);
+vm.createContext(scope);vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*loadPublicCategories\(\);[\s\S]*$/,''),scope);
 const run=code=>vm.runInContext(code,scope);
 const domain='https://travauxcorse.com';
 const routes=[['home','', 'TravauxCorse | Artisans et travaux en Corse','Déposez votre projet de travaux en Corse. TravauxCorse facilite la mise en relation avec les artisans et fournisseurs en Haute-Corse et Corse-du-Sud.'],['energy','travaux-energetiques','Rénovation énergétique en Corse | TravauxCorse','Isolation, climatisation, chauffage, ventilation et photovoltaïque : préparez votre rénovation énergétique en Corse avec TravauxCorse.'],['suppliers','partenaires','Fournisseurs et matériaux en Corse | TravauxCorse','Organisez les fournitures de votre chantier en Corse : matériaux, électricité, plomberie, chauffage et menuiserie.'],['request','deposer-une-demande','Demande de devis travaux en Corse | TravauxCorse','Décrivez votre chantier en Corse, sélectionnez plusieurs métiers et joignez vos photos ou plans. Une demande gratuite et sans engagement.'],['partner','devenir-partenaire','Devenir artisan ou fournisseur partenaire | TravauxCorse','Artisans, entreprises du bâtiment et fournisseurs en Corse : proposez votre candidature au réseau TravauxCorse.']];

@@ -1425,6 +1425,7 @@ input[type=checkbox],input[type=radio]{width:20px;min-width:20px;height:20px;min
 /* The original high-resolution logo supplies the wordmark and tagline. */
 .tc-header .tc-brand{display:flex;align-items:center;width:225px;max-width:100%;background:#fff;line-height:normal}
 .tc-header .tc-brand img{display:block;width:100%;height:auto;object-fit:contain}
+.category-admin-list{display:grid;gap:12px;margin:20px 0}.category-admin-row{display:grid;grid-template-columns:32px minmax(150px,1fr) auto auto;align-items:end;gap:12px;padding:12px;background:#f6f2eb;border:1px solid #dfd7cd;border-radius:10px}.category-admin-row label:not(.category-active){display:grid;gap:5px;font-weight:700}.category-admin-row input[type=text],.category-admin-row input:not([type]){width:100%;min-height:42px;padding:8px;border:1px solid #b6b4b0;border-radius:7px}.category-position{align-self:center;font-weight:800}.category-active{min-height:42px;display:flex;align-items:center;gap:5px}.category-row-actions{display:flex;flex-wrap:wrap;gap:6px}.category-row-actions button{min-height:42px}@media(max-width:850px){.category-admin-row{grid-template-columns:24px minmax(0,1fr)}.category-active,.category-row-actions{grid-column:2}}
 .portal-auth .brand.centered{display:flex;width:min(100%,320px);justify-content:center;background:#fff;border-radius:6px}
 .portal-auth .brand.centered img{display:block;width:100%;height:auto;object-fit:contain}
 @media(min-width:1200px){.tc-header{grid-template-columns:235px minmax(0,1fr) 210px}}
