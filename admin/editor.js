@@ -8,7 +8,7 @@
   async function api(body,id){
     const response=await fetch('/api/editorial'+(id?'?id='+encodeURIComponent(id):''),{method:body?'POST':'GET',credentials:'same-origin',cache:'no-store',signal:AbortSignal.timeout(60000),headers:body?{'Content-Type':'application/json','X-CSRF-Token':csrf}:{},body:body?JSON.stringify(body):undefined});
     let result;try{result=await response.json();}catch{throw Error('Le service de publication est indisponible. Votre saisie reste affichée.');}
-    if(response.status===401){$('#editor-login').hidden=false;configured=false;controls();}
+    if(response.status===401){$('#editor-login').hidden=false;$('#editor-private-toolbar').hidden=true;$('#editor-private-content').hidden=true;configured=false;controls();}
     if(!response.ok){if(result.configured===false){$('#editor-setup').hidden=false;$('#editor-login').hidden=true;}throw Error(result.error||'Impossible de contacter le serveur.');}
     return result;
   }
@@ -54,8 +54,8 @@
     }catch(error){message(error.message,true);}finally{busy=false;controls();}
   }
   async function load(){
-    try{const result=await api();if(!result.authenticated){$('#editor-login').hidden=false;return;}
-      configured=true;$('#editor-login').hidden=true;$('#editor-setup').hidden=true;$('#editor-logout').hidden=false;csrf=result.csrf;version=result.version;entries=result.entries;
+    try{const result=await api();if(!result.authenticated){$('#editor-login').hidden=false;$('#editor-private-toolbar').hidden=true;$('#editor-private-content').hidden=true;configured=false;return;}
+      configured=true;$('#editor-private-toolbar').hidden=false;$('#editor-private-content').hidden=false;$('#editor-login').hidden=true;$('#editor-setup').hidden=true;$('#editor-logout').hidden=false;csrf=result.csrf;version=result.version;entries=result.entries;
       if(!dirty)await open(entries.find(item=>item.draft.kind===kind));else list();
       message('Connecté. Les enregistrements sont partagés en ligne.');
     }catch(error){message(error.message,true);if(!current)open();}finally{controls();}

@@ -23,4 +23,9 @@ test('legacy browser demo administrator is discarded and cannot open the old adm
 test('published scripts and admin HTML contain no demo admin credential or access link',()=>{
   const delivered=['app.js','portal.js','admin/index.html','admin/demandes/index.html'].map(file=>fs.readFileSync(path.join(root,file),'utf8')).join('\n');
   assert.doesNotMatch(delivered,/admin\/admin|password:\s*["']admin["']|data-page=["']admin["']|\/#admin|\/#login/);
+  const editor=fs.readFileSync(path.join(root,'admin/index.html'),'utf8');
+  const requests=fs.readFileSync(path.join(root,'admin/demandes/index.html'),'utf8');
+  assert.match(editor,/id="editor-private-toolbar" hidden/);
+  assert.match(editor,/id="editor-private-content" hidden/);
+  assert.match(requests,/class="portal-card artisan-directory" hidden/);
 });
