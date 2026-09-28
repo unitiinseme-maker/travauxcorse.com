@@ -1,5 +1,6 @@
-const {list,get}=require('@vercel/blob');
+const {list,get,put}=require('@vercel/blob');
 const {normalizeRequest}=require('../lib/project-request');
+const {readRequest,saveRequest}=require('../lib/request-store');
 const {hash,readArtisan,listArtisans,saveArtisan,newInvite,sessionCookie,parseSession,emailConfigured,sendEmail}=require('../lib/artisan-accounts');
 const attempts=new Map();
 const send=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
@@ -12,7 +13,9 @@ async function projectsFor(profile){
       const blob=await get(path,{access:'private',useCache:false});if(!blob||blob.statusCode!==200)return null;
       const raw=await new Response(blob.stream).text();if(raw.length>30000)return null;
       const item=normalizeRequest(JSON.parse(raw));
-      return item?.assignedArtisans.some(a=>a.email===profile.email&&(!a.artisanId||a.artisanId===profile.id))?{
+      const assignment=item?.assignedArtisans.find(a=>a.email===profile.email&&a.artisanId===profile.id);
+      return assignment?{
+        id:path,assignment:{id:assignment.id,status:assignment.status,response:assignment.response,respondedAt:assignment.respondedAt},quotes:item.quotes.filter(q=>q.assignmentId===assignment.id),
         date:item.date,title:item.title,commune:item.commune,trades:item.trades,description:item.description,delay:item.delay,budget:item.budget,property:item.property,surface:item.surface,
         client:{name:item.name,email:item.email,phone:item.phone}
       }:null;
@@ -36,11 +39,47 @@ module.exports=async function(req,res){
   if(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Origine non autorisée.'});
   try{
     let body=req.body;
-    if(body===undefined){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>2000)return send(res,413,{error:'Données trop volumineuses.'});}body=JSON.parse(raw);}
+    if(body===undefined){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>3000000)return send(res,413,{error:'Données trop volumineuses.'});}body=JSON.parse(raw);}
     else if(typeof body==='string')body=JSON.parse(body);
-    if(!body||Buffer.byteLength(JSON.stringify(body))>2000)return send(res,413,{error:'Données trop volumineuses.'});
+    if(!body||Buffer.byteLength(JSON.stringify(body))>3000000)return send(res,413,{error:'Données trop volumineuses.'});
     if(body.action==='logout'){
       res.setHeader('Set-Cookie','__Host-tc-artisan=; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=0');return send(res,200,{ok:true});
+    }
+    if(body.action==='reply'||body.action==='quote'){
+      const sess=parseSession(req,secret);
+      if(!sess)return send(res,401,{error:'Reconnectez-vous.'});
+      const artisan=await readArtisan(sess.id);
+      if(!artisan?.active||artisan.email!==sess.email)return send(res,401,{error:'Accès expiré.'});
+      const item=await readRequest(body.project);
+      const assignment=item?.assignedArtisans.find(a=>a.id===body.assignmentId&&a.artisanId===artisan.id&&a.email===artisan.email);
+      if(!assignment)return send(res,404,{error:'Projet introuvable.'});
+      const at=new Date().toISOString();
+      if(body.action==='reply'){
+        const message=typeof body.message==='string'?body.message.trim().slice(0,3000):'';
+        if(!message)return send(res,400,{error:'Écrivez votre réponse.'});
+        assignment.response=message;assignment.respondedAt=at;assignment.status='Entreprise intéressée';
+        item.history.push({at,text:artisan.name+' a répondu au projet'});
+      }else{
+        const amount=Number(body.amount),vat=Number(body.vat);
+        if(!Number.isFinite(amount)||amount<=0||amount>100000000||!Number.isFinite(vat)||vat<0||vat>30)return send(res,400,{error:'Montant ou TVA invalide.'});
+        const description=typeof body.description==='string'?body.description.trim().slice(0,1000):'';
+        if(!description)return send(res,400,{error:'Décrivez le devis.'});
+        let pdfPath='';
+        if(body.pdfData){
+          const raw=String(body.pdfData);
+          if(!/^[A-Za-z0-9+/]*={0,2}$/.test(raw))return send(res,400,{error:'PDF invalide.'});
+          const bytes=Buffer.from(raw,'base64');
+          if(!bytes.length||bytes.length>2*1024*1024||!bytes.subarray(0,5).equals(Buffer.from('%PDF-')))return send(res,400,{error:'PDF invalide ou supérieur à 2 Mo.'});
+          pdfPath='project-files/'+require('node:crypto').randomUUID()+'.pdf';
+          await put(pdfPath,bytes,{access:'private',contentType:'application/pdf',addRandomSuffix:false});
+          item.documents.push({path:pdfPath,name:'Devis '+artisan.name+'.pdf',type:'application/pdf',at,owner:artisan.name});
+        }
+        item.quotes.push({id:require('node:crypto').randomUUID(),assignmentId:assignment.id,at,amount,vat,validUntil:String(body.validUntil||'').slice(0,40),description,pdfPath,status:'Envoyé'});
+        assignment.status='Devis reçu';
+        item.history.push({at,text:'Devis transmis par '+artisan.name});
+      }
+      await saveRequest(item);
+      return send(res,200,{ok:true});
     }
     const ip=String(req.headers['x-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0];
     for(const [key,value] of attempts)if(value.until<Date.now())attempts.delete(key);

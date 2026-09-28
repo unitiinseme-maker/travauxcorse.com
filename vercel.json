@@ -31,7 +31,7 @@
       ]
     },
     {
-      "source": "/(admin|artisan/mes-projets)/(.*)",
+      "source": "/(admin|artisan/mes-projets|client/mes-projets)/(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",

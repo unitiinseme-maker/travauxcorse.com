@@ -34,8 +34,9 @@ module.exports=async function(req,res){
       if(!name||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom et une adresse e-mail valide pour l’artisan.'});
       if(item.assignedArtisans.some(a=>a.email.toLowerCase()===email))return send(res,409,{error:'Cet artisan est déjà affecté à ce dossier.'});
       if(item.assignedArtisans.length>=10)return send(res,400,{error:'Ce dossier comporte déjà dix artisans.'});
-      assignment={id:crypto.randomUUID(),name,email,at:new Date().toISOString(),artisanId:profile?.id||'',notified:false};
+      assignment={id:crypto.randomUUID(),name,email,at:new Date().toISOString(),artisanId:profile?.id||'',notified:false,status:'Affectée',response:''};
       item.assignedArtisans.push(assignment);
+      item.status='Entreprises affectées';item.history.push({at:assignment.at,text:'Entreprise affectée par TravauxCorse : '+name});
     }else if(body.action==='notify'){
       assignment=item.assignedArtisans.find(a=>a.id===body.assignmentId);
       if(!assignment)return send(res,404,{error:'Affectation introuvable.'});
@@ -47,6 +48,16 @@ module.exports=async function(req,res){
       const before=item.assignedArtisans.length;
       item.assignedArtisans=item.assignedArtisans.filter(a=>a.id!==body.assignmentId);
       if(before===item.assignedArtisans.length)return send(res,404,{error:'Affectation introuvable.'});
+      item.history.push({at:new Date().toISOString(),text:'Une affectation a été retirée par TravauxCorse'});
+    }else if(body.action==='status'){
+      const allowed=['Demande reçue','Analyse par TravauxCorse','Entreprises recherchées','Entreprises affectées','Réponses en attente','Devis reçus','Projet en cours','Travaux terminés'];
+      if(!allowed.includes(body.status))return send(res,400,{error:'Statut invalide.'});
+      item.status=body.status;item.history.push({at:new Date().toISOString(),text:'Statut modifié : '+body.status});
+    }else if(body.action==='message'){
+      const message=typeof body.message==='string'?body.message.trim().slice(0,3000):'';
+      if(!message)return send(res,400,{error:'Écrivez le message.'});
+      item.messages.push({at:new Date().toISOString(),from:'TravauxCorse',text:message});
+      item.history.push({at:new Date().toISOString(),text:'Message envoyé au client par TravauxCorse'});
     }else return send(res,400,{error:'Action non reconnue.'});
     if(body.action!=='notify')await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
     let notificationSent=false,inviteUrl,notificationError;

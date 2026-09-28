@@ -46,6 +46,19 @@
       const card=document.createElement('article');card.className='portal-card';
       const heading=document.createElement('h2');heading.textContent=item.title||'Demande de travaux';card.append(heading);
       for(const [label,key] of [['Date (UTC)','date'],['Nom','name'],['Email','email'],['Téléphone','phone'],['Métiers','trades'],['Commune','commune'],['Délai','delay'],['Budget','budget'],['Bien','property'],['Surface','surface'],['Description','description'],['Documents et informations','details']])line(card,label,item[key]);
+      line(card,'Statut',item.status);
+      for(const a of item.assignedArtisans||[]){if(a.response)line(card,'Réponse de '+a.name,a.response);}
+      for(const q of item.quotes||[]){const a=(item.assignedArtisans||[]).find(x=>x.id===q.assignmentId);line(card,'Devis de '+(a?.name||'entreprise'),q.amount+' € HT · '+q.status+' · '+q.description);}
+      for(const m of item.messages||[])line(card,'Message de '+m.from,m.text);
+      const statusForm=document.createElement('form');statusForm.dataset.statusRequest=item.id;statusForm.className='request-assign-form';
+      const statusLabel=document.createElement('label');statusLabel.textContent='Étape du projet';const select=document.createElement('select');select.name='status';
+      for(const value of ['Demande reçue','Analyse par TravauxCorse','Entreprises recherchées','Entreprises affectées','Réponses en attente','Devis reçus','Projet en cours','Travaux terminés']){
+        const option=document.createElement('option');option.value=value;option.textContent=value;option.selected=item.status===value;select.append(option);
+      }
+      statusLabel.append(select);const statusButton=document.createElement('button');statusButton.className='secondary';statusButton.textContent='Mettre à jour';statusForm.append(statusLabel,statusButton);card.append(statusForm);
+      const messageForm=document.createElement('form');messageForm.dataset.messageRequest=item.id;messageForm.className='request-assign-form';
+      const messageLabel=document.createElement('label');messageLabel.textContent='Message au client';const message=document.createElement('textarea');message.name='message';message.maxLength=3000;message.required=true;messageLabel.append(message);
+      const messageButton=document.createElement('button');messageButton.className='secondary';messageButton.textContent='Envoyer le message';messageForm.append(messageLabel,messageButton);card.append(messageForm);
       assignments(card,item);list.append(card);
     }
   }
@@ -70,12 +83,16 @@
       if(payload.action==='remove')status.textContent='Affectation retirée.';
       else if(data.notificationSent)status.textContent=payload.action==='notify'?'Notification envoyée au service d’e-mail.':'Affectation enregistrée. Notification envoyée au service d’e-mail.';
       else if(data.inviteUrl){status.textContent=(data.notificationError||'L’envoi automatique est indisponible.')+' Transmettez l’invitation ci-dessous ou réessayez après correction.';const artisan=roster.find(a=>a.id===(payload.artisanId||data.artisanId));if(artisan)showInvite(data.inviteUrl,artisan);}
+      else if(payload.action==='status'||payload.action==='message')status.textContent='Mise à jour enregistrée.';
       else status.textContent='Affectation enregistrée. Pour cet artisan non enregistré, préparez un e-mail de contact.';
     }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
   }
   list.addEventListener('submit',event=>{
     const form=event.target.closest('.request-assign-form');if(!form)return;
-    event.preventDefault();update({action:'assign',id:form.dataset.requestId,artisanId:form.elements.artisanId.value,name:form.elements.artisanName.value,email:form.elements.artisanEmail.value},form.querySelector('button'));
+    event.preventDefault();
+    if(form.dataset.statusRequest){update({action:'status',id:form.dataset.statusRequest,status:form.elements.status.value},form.querySelector('button'));return;}
+    if(form.dataset.messageRequest){update({action:'message',id:form.dataset.messageRequest,message:form.elements.message.value},form.querySelector('button'));return;}
+    update({action:'assign',id:form.dataset.requestId,artisanId:form.elements.artisanId.value,name:form.elements.artisanName.value,email:form.elements.artisanEmail.value},form.querySelector('button'));
   });
   list.addEventListener('click',event=>{
     const retry=event.target.closest('[data-notify-assignment]');if(retry){update({action:'notify',id:retry.dataset.requestId,assignmentId:retry.dataset.notifyAssignment},retry);return;}
