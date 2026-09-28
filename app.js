@@ -681,7 +681,7 @@ function renderPartner() {
   return `<section class="page-section narrow">
     <p class="eyebrow">Artisans et entreprises du bâtiment</p><h1>Rejoignez le réseau TravauxCorse</h1><p>Recevez des demandes qualifiées, développez votre visibilité locale et valorisez votre savoir-faire auprès de clients en Corse.</p>
     <div class="feature-grid compact">${["Accès aux demandes qualifiées", "Développez votre activité", "Profil professionnel", "Mise en avant Premium"].map((x) => `<article><h3>${x}</h3><p>Une présence claire, locale et orientée projets concrets.</p></article>`).join("")}</div>
-    <form class="form-panel" data-partner-form>
+    <form class="form-panel" data-partner-form method="POST" action="/api/partner-application">
       <h2>Demande de partenariat</h2>
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
@@ -689,7 +689,7 @@ function renderPartner() {
         <label>Métier principal<select name="trade">${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
-      <p>Vos coordonnées seront envoyées à TravauxCorse via FormSubmit pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status"></p><button class="primary" type="submit">Envoyer ma candidature</button>
+      <p>Vos coordonnées seront envoyées à TravauxCorse pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" name="contactConsent" value="oui" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status" aria-live="polite"></p><button class="primary" type="submit">Envoyer ma candidature</button>
     </form>
   </section>`;
 }
@@ -906,11 +906,20 @@ function bindFilters() {
 }
 
 function bindForms() {
-  document.querySelector("[data-partner-form]")?.addEventListener("submit", (event) => {
+  document.querySelector("[data-partner-form]")?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    if (!validPhone(data.phone)) { event.currentTarget.querySelector('[data-send-status]').textContent="Indiquez un téléphone valide."; return; }
-    sendProjectByEmail({subject:"TravauxCorse — Candidature partenaire",name:data.manager,email:data.email,phone:data.phone,title:data.company,commune:data.zone,categories:[data.trade],description:data.message,files:"Candidature au réseau"}, event.currentTarget);
+    const form=event.currentTarget,status=form.querySelector('[data-send-status]'),button=form.querySelector('button[type="submit"]');
+    if(form.dataset.sending==='true')return;
+    const data=Object.fromEntries(new FormData(form));
+    if(!validPhone(data.phone)){status.textContent='Indiquez un téléphone valide.';return;}
+    form.dataset.sending='true';button.disabled=true;status.textContent='Envoi de votre candidature…';
+    try{
+      const response=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data),signal:AbortSignal.timeout(20000)});
+      const result=await response.json();
+      if(!response.ok||!result.sent)throw Error(result.error||'Impossible d’envoyer votre candidature. Réessayez dans quelques instants.');
+      form.reset();status.textContent='Merci, votre candidature a bien été envoyée à TravauxCorse. Nous reviendrons vers vous rapidement.';
+    }catch(error){status.textContent=error.name==='TimeoutError'?'L’envoi a pris trop de temps. Vérifiez votre messagerie avant de réessayer.':error instanceof SyntaxError?'Le serveur est momentanément indisponible. Réessayez ou écrivez à contact.travauxcorse@gmail.com.':error.message||'L’envoi a échoué. Réessayez ou contactez TravauxCorse par e-mail.';}
+    finally{form.dataset.sending='false';button.disabled=false;}
   });
   document.querySelectorAll("[data-role-login]").forEach((el) => el.addEventListener("click", () => {
     state.role = el.dataset.roleLogin;
