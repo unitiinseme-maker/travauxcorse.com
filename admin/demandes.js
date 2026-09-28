@@ -14,7 +14,7 @@
     directoryList.replaceChildren();
     if(!roster.length){directoryStatus.textContent='Aucun artisan réel enregistré. Ajoutez le premier artisan ci-dessus.';return;}
     directoryStatus.textContent=roster.length+' artisan(s) enregistré(s).';
-    for(const artisan of roster){const row=document.createElement('div');row.className='request-assignment';const label=document.createElement('span');label.textContent=artisan.name+' · '+artisan.trades+' · '+artisan.email;const button=document.createElement('button');button.className='secondary';button.type='button';button.textContent='Envoyer un nouvel accès';button.dataset.inviteArtisan=artisan.id;row.append(label,button);directoryList.append(row);}
+    for(const artisan of roster){const row=document.createElement('div');row.className='request-assignment';const label=document.createElement('span');label.textContent=artisan.name+' · '+artisan.trades+' · '+artisan.email;row.append(label);directoryList.append(row);}
   }
   async function loadRoster(){const response=await fetch('/api/artisans',{credentials:'same-origin',cache:'no-store'}),data=await response.json();if(!response.ok)throw Error(data.error||'Répertoire indisponible.');roster=data.artisans;renderRoster();}
   function line(parent,label,value){if(!value)return;const row=document.createElement('p');const strong=document.createElement('strong');strong.textContent=label+' : ';row.append(strong,document.createTextNode(value));parent.append(row);}
@@ -82,7 +82,7 @@
       await load();
       if(payload.action==='remove')status.textContent='Affectation retirée.';
       else if(data.notificationSent)status.textContent=payload.action==='notify'?'Notification envoyée au service d’e-mail.':'Affectation enregistrée. Notification envoyée au service d’e-mail.';
-      else if(data.inviteUrl){status.textContent=(data.notificationError||'L’envoi automatique est indisponible.')+' Transmettez l’invitation ci-dessous ou réessayez après correction.';const artisan=roster.find(a=>a.id===(payload.artisanId||data.artisanId));if(artisan)showInvite(data.inviteUrl,artisan);}
+      else if(data.notificationError){status.textContent=data.notificationError+' Vous pouvez utiliser « Préparer un e-mail » sur l’affectation.';}
       else if(payload.action==='status'||payload.action==='message')status.textContent='Mise à jour enregistrée.';
       else status.textContent='Affectation enregistrée. Pour cet artisan non enregistré, préparez un e-mail de contact.';
     }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
@@ -99,9 +99,8 @@
     const button=event.target.closest('[data-remove-assignment]');if(!button)return;
     update({action:'remove',id:button.dataset.requestId,assignmentId:button.dataset.removeAssignment},button);
   });
-  async function saveArtisan(payload,button){button.disabled=true;directoryStatus.textContent='Enregistrement…';try{const response=await fetch('/api/artisans',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok)throw Error(data.error||'Impossible d’enregistrer l’artisan.');await load();directoryStatus.textContent=data.invitationSent?'Artisan enregistré : invitation envoyée par e-mail.':(data.deliveryError||'Invitation non envoyée.')+' Transmettez son invitation ci-dessous.';if(data.inviteUrl)showInvite(data.inviteUrl,data.artisan);}catch(error){directoryStatus.textContent=error.message;}finally{button.disabled=false;}}
+  async function saveArtisan(payload,button){button.disabled=true;directoryStatus.textContent='Enregistrement…';try{const response=await fetch('/api/artisans',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok)throw Error(data.error||'Impossible d’enregistrer l’artisan.');await load();directoryStatus.textContent='Artisan enregistré dans le répertoire.';}catch(error){directoryStatus.textContent=error.message;}finally{button.disabled=false;}}
   $('#artisan-register').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;saveArtisan({action:'add',name:form.elements.namedItem('name').value,email:form.elements.namedItem('email').value,trades:form.elements.namedItem('trades').value},form.querySelector('button'));});
-  directoryList.addEventListener('click',event=>{const button=event.target.closest('[data-invite-artisan]');if(button)saveArtisan({action:'invite',id:button.dataset.inviteArtisan},button);});
   login.addEventListener('submit',async event=>{
     event.preventDefault();const button=login.querySelector('button');button.disabled=true;status.textContent='Connexion…';
     try{
