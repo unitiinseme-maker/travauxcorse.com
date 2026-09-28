@@ -1421,3 +1421,12 @@ input[type=checkbox],input[type=radio]{width:20px;min-width:20px;height:20px;min
 
 /* Lancement simplifié 2026-09 : pas de comptes client/artisan publics. */
 .tc-actions [data-page="login"]{display:none!important}
+
+/* The original high-resolution logo supplies the wordmark and tagline. */
+.tc-header .tc-brand{display:flex;align-items:center;width:225px;max-width:100%;background:#fff;line-height:normal}
+.tc-header .tc-brand img{display:block;width:100%;height:auto;object-fit:contain}
+.portal-auth .brand.centered{display:flex;width:min(100%,320px);justify-content:center;background:#fff;border-radius:6px}
+.portal-auth .brand.centered img{display:block;width:100%;height:auto;object-fit:contain}
+@media(min-width:1200px){.tc-header{grid-template-columns:235px minmax(0,1fr) 210px}}
+@media(min-width:768px) and (max-width:1199px){.tc-header .tc-brand{width:220px}}
+@media(max-width:767px){.tc-header .tc-brand{width:clamp(145px,50vw,200px)}}
