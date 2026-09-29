@@ -10,6 +10,7 @@ button.onclick=async()=>{
   await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('Page indisponible')),15000);frame.onload=()=>{clearTimeout(timeout);resolve();};frame.src=route.value;});
   await new Promise(resolve=>setTimeout(resolve,150));
   const doc=frame.contentDocument,win=frame.contentWindow;
+  if(!doc){frame.remove();throw Error("Page non affichable dans une iframe : testez-la directement (protection X-Frame-Options).");}
   const overflow=[...doc.querySelectorAll('main *,header *,footer *')].filter(el=>{const b=el.getBoundingClientRect(),style=win.getComputedStyle(el);return b.width>0&&style.position!=='absolute'&&style.position!=='fixed'&&(b.right>doc.documentElement.clientWidth+1||b.left< -1);}).slice(0,10).map(el=>el.tagName+'.'+el.className);
   const menu=doc.querySelector('[data-tc-menu]'),nav=doc.querySelector('.tc-nav');
   let mobileMenu=null;

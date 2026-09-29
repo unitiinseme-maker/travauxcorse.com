@@ -133,11 +133,7 @@ const seed = {
     intro: "Particuliers, artisans et fournisseurs : TravauxCorse vous met en relation pour organiser vos travaux en Haute-Corse et en Corse-du-Sud, du premier besoin au choix des matériaux.",
     contactEmail: "contact.travauxcorse@gmail.com",
     contactPhone: "07 71 81 50 90",
-    footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires.",
-    statCompanies: "+150",
-    statRequests: "+500",
-    statDepartments: "2",
-    statCategories: "20"
+    footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires."
   },
   accounts: [],
   requestDraft: { step: 0, category: "", categories: [], title: "", description: "", commune: "", delay: "Sous 1 mois", budget: "", property: "", surface: "", files: "", name: "", email: "", phone: "" },
