@@ -64,7 +64,7 @@ module.exports=async function(req,res){
     if(profile){
       try{
         const email=await sendEmail(profile.email,'Un nouveau projet vous est affecté | TravauxCorse',
-          'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté par TravauxCorse.\n\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\nDélai : '+(item.delay||'Non précisé')+'\nBudget : '+(item.budget||'Non précisé')+'\n\nDescription :\n'+(item.description||'Non précisée')+'\n\nMerci de répondre directement à cet e-mail pour nous confirmer votre intérêt.\n\nTravauxCorse\ncontact.travauxcorse@gmail.com');
+          'Bonjour '+profile.name+',\n\nUn nouveau projet vous est affecté par TravauxCorse.\n\nProjet : '+item.title+'\nCommune : '+item.commune+'\nMétiers : '+item.trades+'\nDélai : '+(item.delay||'Non précisé')+'\nBudget : '+(item.budget||'Non précisé')+'\nClient : '+(item.name||'Non précisé')+'\nTéléphone : '+(item.phone||'Non précisé')+'\nE-mail : '+(item.email||'Non précisé')+'\n\nDescription :\n'+(item.description||'Non précisée')+'\n\nMerci de répondre directement à cet e-mail pour nous confirmer votre intérêt.\n\nTravauxCorse\ncontact.travauxcorse@gmail.com');
         notificationSent=email.sent;
         if(notificationSent){assignment.notified=true;await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});}
         else notificationError=email.reason;

@@ -1,6 +1,7 @@
 const crypto=require('node:crypto');
 const {cmsSession,cmsConfig}=require('./editorial');
 const {listArtisans,saveArtisan,emailConfigured}=require('../lib/artisan-accounts');
+const {loadCategories}=require('../lib/category-store');
 const send=(res,status,data)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(data));};
 const publicProfile=p=>({id:p.id,name:p.name,email:p.email,trades:p.trades,active:p.active,createdAt:p.createdAt});
 module.exports=async function(req,res){
@@ -24,8 +25,11 @@ module.exports=async function(req,res){
     if(body.action==='add'){
       const name=typeof body.name==='string'?body.name.trim().slice(0,120):'';
       const email=typeof body.email==='string'?body.email.trim().toLowerCase().slice(0,254):'';
-      const trades=typeof body.trades==='string'?body.trades.trim().slice(0,300):'';
-      if(!name||!trades||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom, l’e-mail et le métier de l’artisan.'});
+      const selected=Array.isArray(body.trades)?body.trades:[];
+      const active=(await loadCategories()).filter(category=>category.active).map(category=>category.name);
+      if(!name||!selected.length||selected.some(trade=>typeof trade!=='string'||!active.includes(trade))||!/^\S+@\S+\.\S+$/.test(email))return send(res,400,{error:'Indiquez le nom, l’e-mail et des métiers publiés pour cet artisan.'});
+      const trades=[...new Set(selected)].join(' · ');
+      if(trades.length>500)return send(res,400,{error:'Sélectionnez moins de métiers.'});
       if((await listArtisans()).some(p=>p.email===email))return send(res,409,{error:'Cet e-mail est déjà enregistré.'});
       profile={id:crypto.randomUUID(),name,email,trades,active:true,createdAt:new Date().toISOString()};
       await saveArtisan(profile);

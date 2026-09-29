@@ -13,15 +13,14 @@ test('legacy browser demo administrator is discarded and cannot open the old adm
   vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*loadPublicCategories\(\);[\s\S]*$/,''),scope);
   assert.equal(vm.runInContext('state.role',scope),'visiteur');
   assert.equal(vm.runInContext('state.currentUserEmail',scope),'');
-  assert.equal(vm.runInContext('state.accounts.some(a=>a.role==="admin")',scope),false);
+  assert.equal(vm.runInContext('state.accounts',scope),undefined);
   assert.equal(vm.runInContext('pageFromUrl()',scope),'home');
   assert.equal(vm.runInContext('applicationPages.has("admin")',scope),false);
-  vm.runInContext(fs.readFileSync(path.join(root,'portal.js'),'utf8'),scope);
-  assert.equal(vm.runInContext('window.TravauxCorsePortal.render("admin",state).includes("portal-sidebar")',scope),false);
+  assert.equal(fs.existsSync(path.join(root,'portal.js')),false);
 });
 
 test('published scripts and admin HTML contain no demo admin credential or access link',()=>{
-  const delivered=['app.js','portal.js','admin/index.html','admin/demandes/index.html'].map(file=>fs.readFileSync(path.join(root,file),'utf8')).join('\n');
+  const delivered=['app.js','admin/index.html','admin/demandes/index.html'].map(file=>fs.readFileSync(path.join(root,file),'utf8')).join('\n');
   assert.doesNotMatch(delivered,/admin\/admin|password:\s*["']admin["']|data-page=["']admin["']|\/#admin|\/#login/);
   const editor=fs.readFileSync(path.join(root,'admin/index.html'),'utf8');
   const requests=fs.readFileSync(path.join(root,'admin/demandes/index.html'),'utf8');

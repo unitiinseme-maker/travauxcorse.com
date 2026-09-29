@@ -11,7 +11,6 @@ const accounts=require('../lib/artisan-accounts');
 const artisanId=crypto.randomUUID(),profile={id:artisanId,name:'Artisan confirmé',email:'artisan@example.fr',active:true};
 accounts.readArtisan=async id=>id===artisanId?profile:null;
 accounts.saveArtisan=async()=>{};
-accounts.newInvite=()=>({url:'https://travauxcorse-com.vercel.app/artisan/mes-projets/#invitation=test'});
 let deliveryWorks=false;
 accounts.sendEmail=async()=>deliveryWorks?{sent:true}:{sent:false,reason:'Gmail a refusé la connexion.'};
 const handler=require('../api/assign-request');

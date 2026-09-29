@@ -1448,3 +1448,10 @@ input[type=checkbox],input[type=radio]{width:20px;min-width:20px;height:20px;min
 :where(a,button,input,select,textarea,summary):focus-visible { outline-color:var(--color-primary-ink); }
 .portal-user>span, .avatar, .supply-flow span, .flow-steps span, .role-buttons button { color:#24211e; }
 .stepper button.active span { opacity:1; }
+
+/* Admin artisan registration uses the same published categories as public forms. */
+#artisan-register #artisan-trades{grid-column:1/-1;margin:0;border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+#artisan-register #artisan-trades legend{font-weight:700;padding:0 6px}
+#artisan-register #artisan-trades .trade-choices{max-height:260px;overflow:auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:8px}
+#artisan-register #artisan-trades .trade-choices label{font-weight:500}
+.partner-trades{border:1px solid var(--line);border-radius:10px;padding:14px}.partner-trades legend{font-weight:700;padding:0 6px}

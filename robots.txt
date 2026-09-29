@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /api/
 Disallow: /tests/
-Sitemap: https://travauxcorse.com/sitemap.xml
+Sitemap: https://travauxcorse-com.vercel.app/sitemap.xml

@@ -3,6 +3,19 @@
   const status=$('#request-status'),list=$('#request-list'),login=$('#request-login'),setup=$('#request-setup');
   const directory=$('.artisan-directory'),directoryList=$('#artisan-directory-list'),directoryStatus=$('#artisan-directory-status'),invitation=$('#artisan-invitation');
   let csrf='',roster=[];
+  async function loadTradeChoices(){
+    const group=$('#artisan-trades');
+    try{
+      const response=await fetch('/api/categories',{cache:'no-store',credentials:'omit'});
+      if(!response.ok)throw Error();
+      const categories=await response.json();
+      if(!Array.isArray(categories)||!categories.length)throw Error();
+      group.replaceChildren();
+      const choices=document.createElement('div');choices.className='trade-choices';
+      for(const category of categories){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.name='trades';box.value=category.name;label.append(box,document.createTextNode(' '+category.name));choices.append(label);}
+      group.append(choices);
+    }catch{group.replaceChildren();const p=document.createElement('p');p.textContent='Catégories indisponibles. Rechargez la page avant d’enregistrer un artisan.';group.append(p);}
+  }
   function showInvite(url,artisan){
     invitation.replaceChildren();invitation.hidden=false;
     const p=document.createElement('p');p.textContent='L’envoi automatique n’a pas abouti. Transmettez-lui ce lien personnel (valable 7 jours) :';
@@ -100,7 +113,7 @@
     update({action:'remove',id:button.dataset.requestId,assignmentId:button.dataset.removeAssignment},button);
   });
   async function saveArtisan(payload,button){button.disabled=true;directoryStatus.textContent='Enregistrement…';try{const response=await fetch('/api/artisans',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(payload)}),data=await response.json();if(!response.ok)throw Error(data.error||'Impossible d’enregistrer l’artisan.');await load();directoryStatus.textContent='Artisan enregistré dans le répertoire.';}catch(error){directoryStatus.textContent=error.message;}finally{button.disabled=false;}}
-  $('#artisan-register').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;saveArtisan({action:'add',name:form.elements.namedItem('name').value,email:form.elements.namedItem('email').value,trades:form.elements.namedItem('trades').value},form.querySelector('button'));});
+  $('#artisan-register').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget,trades=[...form.querySelectorAll('[name="trades"]:checked')].map(input=>input.value);if(!trades.length){directoryStatus.textContent='Sélectionnez au moins un métier publié.';return;}saveArtisan({action:'add',name:form.elements.namedItem('name').value,email:form.elements.namedItem('email').value,trades},form.querySelector('button'));});
   login.addEventListener('submit',async event=>{
     event.preventDefault();const button=login.querySelector('button');button.disabled=true;status.textContent='Connexion…';
     try{
@@ -109,5 +122,5 @@
       if(!response.ok)throw Error(data.error||'Connexion impossible.');await load();
     }catch(error){status.textContent=error.message;}finally{button.disabled=false;}
   });
-  $('#refresh-requests').addEventListener('click',load);load();
+  $('#refresh-requests').addEventListener('click',()=>{loadTradeChoices();load();});loadTradeChoices();load();
 })();

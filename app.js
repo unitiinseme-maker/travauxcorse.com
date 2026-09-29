@@ -139,42 +139,14 @@ const seed = {
     statDepartments: "2",
     statCategories: "20"
   },
-  accounts: [
-    { role: "client", email: "sophie@example.fr", name: "Sophie P.", password: "client" },
-    { role: "artisan", email: "artisan@travauxcorse.fr", name: "Entreprise partenaire", password: "artisan", artisanId: "art-5" }
-  ],
+  accounts: [],
   requestDraft: { step: 0, category: "", categories: [], title: "", description: "", commune: "", delay: "Sous 1 mois", budget: "", property: "", surface: "", files: "", name: "", email: "", phone: "" },
   filters: { q: "", trade: "", zone: "", energy: false, urgent: false, verified: true },
   supplierPartners: [],
-  artisans: [
-    { id: "art-1", name: "Rénovation Globale Corse", city: "Porto-Vecchio", department: "Corse-du-Sud", trades: ["Rénovation complète", "Maçonnerie / Gros œuvre", "Peinture"], energy: ["Rénovation énergétique globale", "Audit énergétique"], rating: 4.9, reviews: 18, status: "Disponible", verified: true, premium: true, urgent: false, insurance: true, photos: true, text: "Rénovation globale clé en main, de l'audit aux travaux, avec accompagnement du projet." },
-    { id: "art-2", name: "Plomberie Bastia Services", city: "Bastia", department: "Haute-Corse", trades: ["Plomberie", "Chauffage / Climatisation"], energy: ["Chauffage", "Eau chaude sanitaire"], rating: 4.9, reviews: 15, status: "Intervention urgente", verified: true, premium: false, urgent: true, insurance: true, photos: true, text: "Plombier-chauffagiste pour dépannage, installation et entretien à Bastia." },
-    { id: "art-3", name: "Électricité Corse Pro", city: "Bastia", department: "Haute-Corse", trades: ["Électricité", "Dépannage urgent", "Photovoltaïque"], energy: ["Photovoltaïque"], rating: 4.8, reviews: 12, status: "Intervention urgente", verified: true, premium: true, urgent: true, insurance: true, photos: false, text: "Électricien certifié pour installation, dépannage et solaire en Haute-Corse." },
-    { id: "art-4", name: "Menuiseries Ajacciennes", city: "Ajaccio", department: "Corse-du-Sud", trades: ["Menuiseries extérieures", "Menuiseries intérieures"], energy: ["Menuiseries énergétiques"], rating: 4.6, reviews: 21, status: "Sur devis", verified: true, premium: false, urgent: false, insurance: true, photos: true, text: "Fenêtres, portes, volets et rénovations de menuiseries sur mesure." },
-    { id: "art-5", name: "Clima Balagne", city: "Calvi", department: "Haute-Corse", trades: ["Chauffage / Climatisation", "Ventilation / VMC"], energy: ["Climatisation", "Pompe à chaleur", "Ventilation / VMC"], rating: 4.7, reviews: 9, status: "Disponible", verified: true, premium: false, urgent: false, insurance: true, photos: true, text: "Pose de climatisations réversibles, PAC air/air et entretien en Balagne." },
-    { id: "art-6", name: "Toitures du Sud", city: "Ajaccio", department: "Corse-du-Sud", trades: ["Toiture / Charpente / Couverture", "Étanchéité", "Façade / Ravalement"], energy: [], rating: 4.4, reviews: 7, status: "Sur devis", verified: false, premium: false, urgent: false, insurance: false, photos: true, text: "Couverture, charpente, étanchéité et réparations après intempéries." },
-    { id: "art-7", name: "Isola Corte", city: "Corte", department: "Haute-Corse", trades: ["Plâtrerie / Cloisons / Isolation", "Travaux énergétiques"], energy: ["Isolation intérieure", "Isolation extérieure"], rating: 4.5, reviews: 11, status: "Disponible", verified: true, premium: true, urgent: false, insurance: true, photos: true, text: "Isolation thermique et rénovation énergétique dans le centre Corse." }
-  ],
-  requests: [
-    { id: "dem-1", date: today(), category: "Chauffage / Climatisation", title: "Remplacement climatisation séjour", commune: "Bastia", delay: "Sous 1 mois", status: "Fournisseur attribué", name: "Sophie P.", email: "sophie@example.fr", phone: "06 00 00 00 00", description: "Remplacer un ancien split mural par une climatisation réversible plus silencieuse.", budget: "2500", property: "Appartement", surface: "68", assignedSupplier: "Clim Distribution Corse", assignedArtisan: "Clima Balagne", assignedArtisanId: "art-5", adminNote: "Fourniture clim à chiffrer chez le partenaire. Artisan pressenti pour visite technique.", timeline: ["Demande déposée", "Projet vérifié", "Fournisseur proposé"] },
-    { id: "dem-2", date: today(), category: "Travaux énergétiques", title: "Isolation combles maison", commune: "Ajaccio", delay: "Sous 3 mois", status: "En qualification", name: "Marc L.", email: "marc@example.fr", phone: "06 11 11 11 11", description: "Améliorer le confort d'été et réduire la facture énergétique.", budget: "6000", property: "Maison", surface: "110", assignedSupplier: "", assignedArtisan: "", assignedArtisanId: "", adminNote: "Vérifier éligibilité ORELI / MaPrimeRénov'.", timeline: ["Demande déposée", "Analyse administrative en cours"] }
-  ],
-  partners: [
-    { id: "par-1", date: today(), company: "Maçonnerie Exemple", manager: "Jean Rossi", trade: "Maçonnerie / Gros œuvre", zone: "Haute-Corse", status: "À valider", email: "contact@exemple.fr", phone: "06 22 22 22 22" }
-  ],
   selectedArtisan: null
 };
 
 const routePaths = {home:"/",energy:"/travaux-energetiques/",suppliers:"/partenaires/",request:"/deposer-une-demande/",partner:"/devenir-partenaire/"};
-const portalPages=new Set(["login","auth","signin","registerClient","registerCompany","registerPartner","forgot","client","artisanSpace","partnerSpace"]);
-let portalLoading=false,portalError=false;
-function loadPortal(){
-  portalLoading=true;
-  const script=document.createElement("script");script.src="/portal.js";
-  script.onload=()=>{portalLoading=false;render();};
-  script.onerror=()=>{portalLoading=false;portalError=true;script.remove();render();};
-  document.head.appendChild(script);
-}
 let requestAttachments = [];
 let state = loadState();
 let categories=[];
@@ -216,7 +188,7 @@ async function loadPublicPartners(){
   partnersLoaded=true;partnersLoading=false;
   if(state.page==='suppliers')render();
 }
-const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner", "artisans", "registerPartner", "partnerSpace"]);
+const applicationPages = new Set(["home", "request", "energy", "suppliers", "partner"]);
 function pageFromUrl() {
   const route = location.hash.slice(1);
   if (route === "deposer") return "request";
@@ -238,47 +210,19 @@ function normalizeState(next) {
   next.requestDraft.categories = selectedCategories(next.requestDraft);
   next.requestDraft.category = next.requestDraft.categories.join(" · ");
   next.filters = { ...structuredClone(seed.filters), ...(next.filters || {}) };
-  ["accounts", "requests", "artisans", "partners", "supplierPartners"].forEach((key) => {
-    if (!Array.isArray(next[key])) next[key] = structuredClone(seed[key]);
-  });
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
-  if (next.siteSettings.contactPhone === "04 95 00 00 00") next.siteSettings.contactPhone = seed.siteSettings.contactPhone;
-  if (next.siteSettings.contactEmail === "contact@travauxcorse.fr") next.siteSettings.contactEmail = seed.siteSettings.contactEmail;
   delete next.customTrades;
   delete next.tradeVersion;
   next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
-  next.accounts = next.accounts?.length ? next.accounts : structuredClone(seed.accounts);
-  // Discard old locally stored demo administrators and their simulated sessions.
-  next.accounts = next.accounts.filter((account) => account?.role !== "admin");
-  if (next.role === "admin" || next.page === "admin") {
-    next.role = "visiteur";
-    next.currentUserEmail = "";
-    next.page = "home";
-  }
-  next.currentUserEmail = next.currentUserEmail || "";
-  next.supplierPartners = [];
-  next.requests = (next.requests || []).map((request) => {
-    const demo = request.id === "dem-1" ? byId(seed.requests, "dem-1") : null;
-    return {
-      assignedSupplier: demo?.assignedSupplier || "",
-      assignedArtisan: demo?.assignedArtisan || "",
-      assignedArtisanId: demo?.assignedArtisanId || "",
-      adminNote: demo?.adminNote || "",
-      timeline: demo?.timeline || ["Demande déposée"],
-      ...request,
-      assignedSupplier: request.assignedSupplier || demo?.assignedSupplier || "",
-      assignedArtisan: request.assignedArtisan || demo?.assignedArtisan || "",
-      assignedArtisanId: request.assignedArtisanId || demo?.assignedArtisanId || "",
-      adminNote: request.adminNote || demo?.adminNote || "",
-      timeline: request.timeline?.length ? request.timeline : demo?.timeline || ["Demande déposée"]
-    };
-  });
+  for(const key of ['accounts','requests','artisans','partners','supplierPartners'])delete next[key];
+  next.role = 'visiteur';
+  next.currentUserEmail = '';
   return next;
 }
 
 function saveState() {
   try {
-    const publicState = {siteSettings:state.siteSettings,artisans:state.artisans};
+    const publicState = {siteSettings:state.siteSettings};
     localStorage.setItem("travaux-corse-state", JSON.stringify(publicState));
     sessionStorage.setItem("travaux-corse-session", JSON.stringify(state));
   } catch {
@@ -324,17 +268,15 @@ function render() {
   document.querySelector("#app").innerHTML = `
     <div class="site-shell">
       ${renderHeader()}
-      ${["login", "auth", "signin", "registerClient", "registerCompany", "registerPartner", "forgot", "client", "artisanSpace", "partnerSpace"].includes(state.page) ? '<aside role="note" style="padding:14px 20px;background:#fff3d9;color:#533600;border-bottom:1px solid #e2c58b">Espace de démonstration : les comptes, documents et échanges de cet espace restent dans ce navigateur. Ils ne sont pas synchronisés avec les demandes envoyées par email. N’utilisez pas de mot de passe réel ni de documents confidentiels.</aside>' : ""}
       <main id="main-content">${renderPage()}</main>
       ${renderFooter()}
     </div>`;
   bind();
-  document.title = ({home:"TravauxCorse | Artisans et travaux en Corse",request:"Déposer un projet de travaux | TravauxCorse",energy:"Rénovation énergétique en Corse | TravauxCorse",suppliers:"Fournisseurs et matériaux en Corse | TravauxCorse",login:"Connexion | TravauxCorse"})[state.page] || "Votre espace | TravauxCorse";
+  document.title = ({home:"TravauxCorse | Artisans et travaux en Corse",request:"Déposer un projet de travaux | TravauxCorse",energy:"Rénovation énergétique en Corse | TravauxCorse",suppliers:"Fournisseurs et matériaux en Corse | TravauxCorse"})[state.page] || "Votre espace | TravauxCorse";
   document.querySelector("main")?.setAttribute("tabindex", "-1");
-  const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href="https://travauxcorse.com"+(routePaths[state.page]||"/");
+  const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href="https://travauxcorse-com.vercel.app"+(routePaths[state.page]||"/");
   const description=document.querySelector('meta[name="description"]');if(description)description.content=({home:"TravauxCorse met en relation particuliers, artisans et fournisseurs pour vos travaux en Haute-Corse et Corse-du-Sud.",request:"Déposez un projet de travaux en Corse, sélectionnez plusieurs métiers et joignez vos photos ou plans.",energy:"Isolation, climatisation, chauffage et rénovation énergétique en Corse : préparez votre projet.",suppliers:"Organisez les matériaux et équipements de votre chantier en Corse avec TravauxCorse."})[state.page]||"Les services TravauxCorse pour votre projet en Corse.";
   if (state.page === "request") { const heading=document.querySelector('[data-request-form] h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
-  if (portalPages.has(state.page) && !window.TravauxCorsePortal && !portalLoading && !portalError) loadPortal();
   if(state.page==='suppliers'&&!partnersLoaded)loadPublicPartners();
 }
 
@@ -347,27 +289,14 @@ function renderFooter() {
 }
 
 function renderPage() {
-  if(portalPages.has(state.page)&&!window.TravauxCorsePortal)return `<section class="page-section"><h1>Vos espaces TravauxCorse</h1><p role="status">${portalError ? 'Le chargement a échoué. Vérifiez votre connexion et réessayez.' : 'Chargement de votre espace…'}</p>${portalError ? '<button class="primary" data-retry-portal>Réessayer</button>' : ''}</section>`;
-  window.TravauxCorsePortal?.ensure(state);
   const pages = {
     home: renderHome,
     request: renderRequest,
     suppliers: renderSuppliers,
-    artisans: renderArtisans,
     energy: renderEnergy,
     advice: () => { state.page = "home"; saveState(); window.location.href = "/conseils/"; return ""; },
     references: () => { state.page = "home"; saveState(); window.location.href = "/realisations/"; return ""; },
-    partner: renderPartner,
-    login: () => window.TravauxCorsePortal.render("auth", state),
-    auth: () => window.TravauxCorsePortal.render("auth", state),
-    signin: () => window.TravauxCorsePortal.render("signin", state),
-    registerClient: () => window.TravauxCorsePortal.render("registerClient", state),
-    registerCompany: () => window.TravauxCorsePortal.render("registerCompany", state),
-    registerPartner: () => window.TravauxCorsePortal.render("registerPartner", state),
-    forgot: () => window.TravauxCorsePortal.render("forgot", state),
-    client: () => window.TravauxCorsePortal.render("client", state),
-    artisanSpace: () => window.TravauxCorsePortal.render("company", state),
-    partnerSpace: () => window.TravauxCorsePortal.render("partner", state)
+    partner: renderPartner
   };
   return (pages[state.page] || renderHome)();
 }
@@ -469,59 +398,6 @@ function labelFor(key) {
 
 function stepActions() {
   return `<div class="actions">${state.requestDraft.step > 0 ? `<button type="button" class="secondary" data-prev>Retour</button>` : ""}<button type="submit" class="primary">Suivant</button></div>`;
-}
-
-function renderArtisans() {
-  const f = state.filters;
-  const artisans = filteredArtisans();
-  return `<section class="page-section">
-    <div class="section-head"><h1>Trouvez un artisan en Corse</h1><p class="notice">Annuaire de démonstration : ces fiches, notes et avis sont fictifs. Déposez votre projet pour demander une mise en relation réelle.</p><p>Recherchez une entreprise locale selon votre type de travaux, votre commune ou votre zone d'intervention.</p></div>
-    <div class="finder">
-      <aside class="filters">
-        <div class="panel-head"><h2>Filtres</h2><button class="secondary" data-reset-filters>Réinitialiser</button></div>
-        <label>Mot-clé<input data-filter="q" value="${escapeHtml(f.q)}" placeholder="Entreprise, métier..." /></label>
-        <label>Métier<select data-filter="trade"><option value="">Tous les métiers</option>${activeTrades().map((t) => `<option ${f.trade === t ? "selected" : ""}>${escapeHtml(t)}</option>`).join("")}</select></label>
-        <label>Zone<select data-filter="zone"><option value="">Toutes les zones</option>${["Ajaccio", "Bastia", "Calvi", "Corte", "Porto-Vecchio", "Haute-Corse", "Corse-du-Sud"].map((z) => `<option ${f.zone === z ? "selected" : ""}>${z}</option>`).join("")}</select></label>
-        ${checkFilter("energy", "Travaux énergétiques")}${checkFilter("urgent", "Intervention urgente")}${checkFilter("verified", "Artisan validé uniquement")}
-      </aside>
-      <div class="results">
-        <h2>${artisans.length} artisans trouvés</h2>
-        <div class="artisan-list">${artisans.map(renderArtisanCard).join("") || `<div class="notice">Aucun artisan ne correspond aux filtres.</div>`}</div>
-      </div>
-    </div>
-  </section>`;
-}
-
-function checkFilter(key, label) {
-  return `<label class="check"><input type="checkbox" data-filter="${key}" ${state.filters[key] ? "checked" : ""} />${label}</label>`;
-}
-
-function filteredArtisans() {
-  const f = state.filters;
-  const q = f.q.toLowerCase();
-  return state.artisans.filter((a) => {
-    const hay = [a.name, a.city, a.department, a.text, ...a.trades, ...a.energy].join(" ").toLowerCase();
-    return (!q || hay.includes(q)) && (!f.trade || a.trades.includes(f.trade)) && (!f.zone || a.city === f.zone || a.department === f.zone) && (!f.energy || a.energy.length) && (!f.urgent || a.urgent) && (!f.verified || a.verified);
-  });
-}
-
-function renderArtisanCard(a) {
-  return `<article class="artisan-card">
-    <div class="avatar">${escapeHtml(a.name[0])}</div>
-    <div>
-      <div class="card-top"><h3>${escapeHtml(a.name)}</h3><strong>${escapeHtml(a.rating)} / 5</strong></div>
-      <p class="muted">${escapeHtml(a.city)} · ${escapeHtml(a.department)} · ${escapeHtml(a.reviews)} avis</p>
-      <p>${escapeHtml(a.text)}</p>
-      <div class="chips">${a.verified ? `<span>Artisan validé</span>` : ""}${a.energy.length ? `<span>Travaux énergétiques</span>` : ""}<span>${escapeHtml(a.status)}</span>${a.premium ? `<span>Premium</span>` : ""}</div>
-      <div class="tags">${[...a.trades, ...a.energy].slice(0, 6).map((t) => `<span>${escapeHtml(t)}</span>`).join("")}</div>
-      <div class="actions"><button class="secondary" data-artisan="${escapeHtml(a.id)}">Voir la fiche</button><button class="primary" data-request-category="${escapeHtml(a.trades[0])}">Devis</button></div>
-      ${state.selectedArtisan === a.id ? renderArtisanDetails(a) : ""}
-    </div>
-  </article>`;
-}
-
-function renderArtisanDetails(a) {
-  return `<div class="details"><p><strong>Zones :</strong> ${escapeHtml(a.city)}, ${escapeHtml(a.department)}</p><p><strong>Garanties :</strong> ${a.insurance ? "Assurances renseignées" : "Assurances à compléter"} · ${a.photos ? "Réalisations disponibles" : "Photos à venir"}</p><p><strong>Spécialités :</strong> ${escapeHtml([...a.trades, ...a.energy].join(", "))}</p></div>`;
 }
 
 function renderSuppliers() {
@@ -664,7 +540,7 @@ function renderPartner() {
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
         <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" minlength="8" maxlength="25" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
-        <label>Métier principal<select name="trade" required>${activeTrades().length?'':`<option value="">${tradeStatus()}</option>`}${activeTrades().map((t) => `<option>${escapeHtml(t)}</option>`).join("")}</select></label><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
+        <fieldset class="full partner-trades"><legend>Métiers concernés *</legend><p>Cochez tous les métiers de votre entreprise.</p>${activeTrades().length?`<div class="trade-choices">${activeTrades().map(t=>`<label><input type="checkbox" name="trades" value="${escapeHtml(t)}"> ${escapeHtml(t)}</label>`).join('')}</div>`:`<p role="status">${tradeStatus()}</p>`}</fieldset><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
       <p>Vos coordonnées seront envoyées à TravauxCorse pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" name="contactConsent" value="oui" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status" aria-live="polite"></p><button class="primary" type="submit">Envoyer ma candidature</button>
@@ -673,7 +549,6 @@ function renderPartner() {
 }
 
 function bind() {
-  document.querySelector("[data-retry-portal]")?.addEventListener("click",()=>{portalError=false;render();});
   document.querySelectorAll("[data-page]").forEach((el) => el.addEventListener("click", (event) => { if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault(); setPage(el.dataset.page); }));
   const menuButton = document.querySelector("[data-menu]");
   const menu = document.querySelector("[data-nav]");
@@ -706,7 +581,6 @@ function bind() {
     setPage("request");
   }));
   bindRequest();
-  bindFilters();
   bindForms();
   document.querySelectorAll("[data-trade-choice]").forEach(el => el.addEventListener("change", () => {
     setDraftCategories([...document.querySelectorAll(`[data-trade-choice="${el.dataset.tradeChoice}"]:checked`)].map(box => box.value));
@@ -717,7 +591,6 @@ function bind() {
   for (const [selector, key] of [["[data-home-commune]", "commune"], ["[data-home-delay]", "delay"]]) {
     document.querySelector(selector)?.addEventListener("input", event => { state.requestDraft[key] = event.target.value; saveState(); });
   }
-  window.TravauxCorsePortal?.bind(state, { render, saveState, setPage, uid, today });
 }
 
 function captureRequestDraft() {
@@ -865,31 +738,14 @@ function sendProjectByEmail(draft, sourceForm) {
   window.setTimeout(restore, 15000);
 }
 
-function bindFilters() {
-  document.querySelectorAll("[data-filter]").forEach((el) => el.addEventListener("input", () => {
-    const key = el.dataset.filter;
-    state.filters[key] = el.type === "checkbox" ? el.checked : el.value;
-    saveState();
-    render();
-  }));
-  document.querySelector("[data-reset-filters]")?.addEventListener("click", () => {
-    state.filters = structuredClone(seed.filters);
-    saveState();
-    render();
-  });
-  document.querySelectorAll("[data-artisan]").forEach((el) => el.addEventListener("click", () => {
-    state.selectedArtisan = state.selectedArtisan === el.dataset.artisan ? null : el.dataset.artisan;
-    saveState();
-    render();
-  }));
-}
-
 function bindForms() {
   document.querySelector("[data-partner-form]")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const form=event.currentTarget,status=form.querySelector('[data-send-status]'),button=form.querySelector('button[type="submit"]');
     if(form.dataset.sending==='true')return;
-    const data=Object.fromEntries(new FormData(form));
+    const formData=new FormData(form),data=Object.fromEntries(formData);
+    data.trades=formData.getAll('trades');
+    if(!data.trades.length){status.textContent='Cochez au moins un métier pour envoyer votre candidature.';form.querySelector('[name="trades"]')?.focus();return;}
     if(!validPhone(data.phone)){status.textContent='Indiquez un téléphone valide.';return;}
     form.dataset.sending='true';button.disabled=true;status.textContent='Envoi de votre candidature…';
     try{
@@ -900,45 +756,6 @@ function bindForms() {
     }catch(error){status.textContent=error.name==='TimeoutError'?'L’envoi a pris trop de temps. Vérifiez votre messagerie avant de réessayer.':error instanceof SyntaxError?'Le serveur est momentanément indisponible. Réessayez ou écrivez à contact.travauxcorse@gmail.com.':error.message||'L’envoi a échoué. Réessayez ou contactez TravauxCorse par e-mail.';}
     finally{form.dataset.sending='false';button.disabled=false;}
   });
-  document.querySelectorAll("[data-role-login]").forEach((el) => el.addEventListener("click", () => {
-    if (el.dataset.roleLogin === "admin") return;
-    state.role = el.dataset.roleLogin;
-    const account = state.accounts.find((item) => item.role === state.role);
-    state.currentUserEmail = account?.email || "";
-    state.page = el.dataset.roleLogin === "artisan" ? "artisanSpace" : "client";
-    saveState();
-    render();
-  }));
-  document.querySelector("[data-login-form]")?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    const account = state.accounts.find((item) => item.role !== "admin" && item.email === data.email && item.password === data.password);
-    if (!account) {
-      alert("Compte introuvable. Utilisez les comptes de test affichés ou choisissez un profil.");
-      return;
-    }
-    state.role = account.role;
-    state.currentUserEmail = account.email;
-    state.page = account.role === "artisan" ? "artisanSpace" : "client";
-    saveState();
-    render();
-  });
-  document.querySelector("[data-logout]")?.addEventListener("click", () => {
-    state.role = "visiteur";
-    state.currentUserEmail = "";
-    state.page = "home";
-    saveState();
-    render();
-  });
-}
-
-function buildTimeline(request) {
-  const timeline = ["Demande déposée"];
-  if (!["Nouvelle"].includes(request.status)) timeline.push("Analyse TravauxCorse");
-  if (request.assignedSupplier) timeline.push("Fournisseur proposé");
-  if (request.assignedArtisan) timeline.push("Entreprise attribuée");
-  if (["Chantier en cours", "Terminée"].includes(request.status)) timeline.push(request.status);
-  return timeline;
 }
 
 window.addEventListener("popstate", () => { if(location.hash === "#main-content")return;captureRequestDraft(); state.page = pageFromUrl(); render(); });
