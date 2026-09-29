@@ -1,7 +1,7 @@
 (() => {
   const $=selector=>document.querySelector(selector);
   const status=$('#request-status'),list=$('#request-list'),login=$('#request-login'),setup=$('#request-setup');
-  const directory=$('.artisan-directory'),directoryList=$('#artisan-directory-list'),directoryStatus=$('#artisan-directory-status'),invitation=$('#artisan-invitation');
+  const directory=$('.artisan-directory'),directoryList=$('#artisan-directory-list'),directoryStatus=$('#artisan-directory-status');
   let csrf='',roster=[];
   async function loadTradeChoices(){
     const group=$('#artisan-trades');
@@ -15,13 +15,6 @@
       for(const category of categories){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.name='trades';box.value=category.name;label.append(box,document.createTextNode(' '+category.name));choices.append(label);}
       group.append(choices);
     }catch{group.replaceChildren();const p=document.createElement('p');p.textContent='Catégories indisponibles. Rechargez la page avant d’enregistrer un artisan.';group.append(p);}
-  }
-  function showInvite(url,artisan){
-    invitation.replaceChildren();invitation.hidden=false;
-    const p=document.createElement('p');p.textContent='L’envoi automatique n’a pas abouti. Transmettez-lui ce lien personnel (valable 7 jours) :';
-    const input=document.createElement('input');input.readOnly=true;input.value=url;input.setAttribute('aria-label','Lien personnel de connexion');input.style.width='100%';
-    const mail=document.createElement('a');mail.textContent='Préparer l’invitation par e-mail';mail.href='mailto:'+encodeURIComponent(artisan.email)+'?subject='+encodeURIComponent('Votre accès TravauxCorse')+'&body='+encodeURIComponent('Bonjour '+artisan.name+',\n\nVoici votre accès personnel aux projets TravauxCorse :\n'+url+'\n\nCe lien est valable 7 jours.');
-    invitation.append(p,input,mail);
   }
   function renderRoster(){
     directoryList.replaceChildren();

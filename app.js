@@ -530,7 +530,7 @@ function renderAidCard(aid) {
 function renderPartner() {
   return `<section class="page-section narrow">
     <p class="eyebrow">Artisans et entreprises du bâtiment</p><h1>Rejoignez le réseau TravauxCorse</h1><p>Recevez des demandes qualifiées, développez votre visibilité locale et valorisez votre savoir-faire auprès de clients en Corse.</p>
-    <div class="feature-grid compact">${["Accès aux demandes qualifiées", "Développez votre activité", "Profil professionnel", "Mise en avant Premium"].map((x) => `<article><h3>${x}</h3><p>Une présence claire, locale et orientée projets concrets.</p></article>`).join("")}</div>
+    <div class="feature-grid compact">${["Présentez votre activité", "Recevez des projets adaptés", "Échangez par e-mail", "Intervenez dans votre secteur"].map((x) => `<article><h3>${x}</h3><p>Une présence claire, locale et orientée projets concrets.</p></article>`).join("")}</div>
     <form class="form-panel" data-partner-form method="POST" action="/api/partner-application">
       <h2>Demande de partenariat</h2>
       <div class="form-grid">

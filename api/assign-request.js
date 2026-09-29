@@ -41,7 +41,7 @@ module.exports=async function(req,res){
       assignment=item.assignedArtisans.find(a=>a.id===body.assignmentId);
       if(!assignment)return send(res,404,{error:'Affectation introuvable.'});
       if(assignment.notified)return send(res,409,{error:'La notification a déjà été envoyée.'});
-      if(!assignment.artisanId)return send(res,400,{error:'Enregistrez cet artisan dans le répertoire avant de lui envoyer une invitation.'});
+      if(!assignment.artisanId)return send(res,400,{error:'Enregistrez cet artisan dans le répertoire avant de lui envoyer une notification.'});
       profile=await readArtisan(assignment.artisanId);
       if(!profile?.active||profile.email!==assignment.email)return send(res,404,{error:'Le profil de cet artisan est introuvable.'});
     }else if(body.action==='remove'){
