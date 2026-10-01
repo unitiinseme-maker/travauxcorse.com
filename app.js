@@ -270,7 +270,7 @@ function render() {
   bind();
   document.title = ({home:"TravauxCorse | Artisans et travaux en Corse",request:"Déposer un projet de travaux | TravauxCorse",energy:"Rénovation énergétique en Corse | TravauxCorse",suppliers:"Fournisseurs et matériaux en Corse | TravauxCorse"})[state.page] || "Votre espace | TravauxCorse";
   document.querySelector("main")?.setAttribute("tabindex", "-1");
-  const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href="https://travauxcorse-com.vercel.app"+(routePaths[state.page]||"/");
+  const canonical=document.querySelector('link[rel="canonical"]');if(canonical)canonical.href="https://www.travauxcorse.com"+(routePaths[state.page]||"/");
   const description=document.querySelector('meta[name="description"]');if(description)description.content=({home:"TravauxCorse met en relation particuliers, artisans et fournisseurs pour vos travaux en Haute-Corse et Corse-du-Sud.",request:"Déposez un projet de travaux en Corse, sélectionnez plusieurs métiers et joignez vos photos ou plans.",energy:"Isolation, climatisation, chauffage et rénovation énergétique en Corse : préparez votre projet.",suppliers:"Organisez les matériaux et équipements de votre chantier en Corse avec TravauxCorse."})[state.page]||"Les services TravauxCorse pour votre projet en Corse.";
   if (state.page === "request") { const heading=document.querySelector('[data-request-form] h2');if(heading){heading.tabIndex=-1;heading.focus({preventScroll:true});} }
   if(state.page==='suppliers'&&!partnersLoaded)loadPublicPartners();

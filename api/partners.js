@@ -1,3 +1,4 @@
+const {allowedAdminOrigin}=require('../lib/site-config');
 const crypto=require('node:crypto');
 const {cmsSession,cmsConfig}=require('./editorial');
 const {readPartner,listPartners,savePartner,deletePartner}=require('../lib/partner-store');
@@ -27,8 +28,7 @@ module.exports=async function(req,res){
   if(req.method!=='POST'){res.setHeader('Allow','GET, POST');return send(res,405,{error:'Méthode non autorisée.'});}
   if(!auth)return send(res,401,{error:'Connexion administrateur nécessaire.'});
   const expected=crypto.createHmac('sha256',config.secret).update(auth.nonce).digest('base64url');
-  const origin=process.env.CMS_ALLOWED_ORIGIN||'https://travauxcorse-com.vercel.app';
-  if(req.headers.origin!==origin||req.headers['x-csrf-token']!==expected||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Session invalide. Rechargez la page.'});
+  if(!allowedAdminOrigin(req)||req.headers['x-csrf-token']!==expected||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Session invalide. Rechargez la page.'});
   try{
     let body=req.body;
     if(body===undefined){let raw='';for await(const part of req){raw+=part;if(Buffer.byteLength(raw)>500000)return send(res,413,{error:'Photo trop volumineuse.'});}body=JSON.parse(raw);}

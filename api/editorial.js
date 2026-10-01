@@ -1,3 +1,4 @@
+const {allowedAdminOrigin}=require('../lib/site-config');
 const crypto=require('node:crypto');
 const {createStore}=require('../lib/content-store');
 const attempts=new Map();
@@ -20,8 +21,7 @@ module.exports=async function(req,res){
     try{return send(res,200,{configured:true,authenticated:true,csrf:sign(auth.nonce,c.secret),...await createStore(c).load(new URL(req.url,'https://localhost').searchParams.get('id'))});}catch(error){return send(res,error.status||503,{error:error.status?error.message:'Impossible de charger les contenus.'});}
   }
   if(req.method!=='POST'){res.setHeader('Allow','GET, POST');return send(res,405,{error:'Méthode non autorisée.'});}
-  const origin=process.env.CMS_ALLOWED_ORIGIN||'https://travauxcorse-com.vercel.app';
-  if(req.headers.origin!==origin||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Origine de la requête non autorisée.'});
+  if(!allowedAdminOrigin(req)||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'Origine de la requête non autorisée.'});
   try{
     let body=req.body;
     if(body===undefined){let raw='';for await(const chunk of req){raw+=chunk;if(Buffer.byteLength(raw)>2200000)return send(res,413,{error:'Contenu trop volumineux.'});}body=JSON.parse(raw);}
