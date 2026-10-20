@@ -1,14 +1,14 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),crypto=require('node:crypto');
 function moduleAt(file,require){const scope={module:{exports:{}},require,URL,Response,Buffer,console,TypeError,SyntaxError};vm.runInNewContext(fs.readFileSync(__dirname+'/../'+file,'utf8'),scope);return scope.module.exports;}
 let saved=null;
-const store=moduleAt('lib/social-store.js',()=>({get:async()=>saved?{statusCode:200,stream:JSON.stringify(saved)}:null,put:async(path,data)=>{assert.equal(path,'site/social-links.json');saved=JSON.parse(data);}}));
+const store=moduleAt('lib/social-store.js',name=>name.includes('content/social-links')?require('../content/social-links.json'):({get:async()=>saved?{statusCode:200,stream:JSON.stringify(saved)}:null,put:async(path,data)=>{assert.equal(path,'site/social-links.json');saved=JSON.parse(data);}}));
 test('optional social URLs validate hosts and reject injected or unrelated addresses',()=>{
   assert.equal(store.validateSocialLinks({facebook:'',instagram:''}).facebook,'');
   assert.equal(store.validateSocialLinks({facebook:' https://www.facebook.com/travauxcorse ',instagram:'https://instagram.com/travauxcorse/'}).facebook,'https://www.facebook.com/travauxcorse');
   for(const value of ['javascript:alert(1)','http://facebook.com/x','https://facebook.com.evil.test/x','https://evil.test/?facebook.com','https://user:pass@facebook.com/x'])assert.throws(()=>store.validateSocialLinks({facebook:value}));
 });
-test('storage starts empty and persists/removes each link independently',async()=>{
-  assert.equal((await store.loadSocialLinks()).facebook,'');
+test('storage loads configured links and persists/removes each link independently',async()=>{
+  assert.equal((await store.loadSocialLinks()).facebook,'https://www.facebook.com/profile.php?id=61595105011622');
   await store.saveSocialLinks({facebook:'https://www.facebook.com/page',instagram:''});
   assert.equal((await store.loadSocialLinks()).facebook,'https://www.facebook.com/page');
   await store.saveSocialLinks({facebook:'',instagram:'https://www.instagram.com/page/'});
