@@ -32,7 +32,7 @@
       a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.setAttribute('aria-label',name+' TravauxCorse (nouvel onglet)');a.title=name;
       a.innerHTML='<svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true" focusable="false">'+icons[network]+'</svg>';nav.append(a);
     }
-    if(old)old.replaceWith(nav);else footer.append(nav);
+    if(old)old.replaceWith(nav);else (footer.querySelector('.tc-footer-icons')||footer).append(nav);
   }
   async function load(){
     const ticket=++request;
