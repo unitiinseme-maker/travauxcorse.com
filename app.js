@@ -281,7 +281,7 @@ function renderHeader() {
 }
 
 function renderFooter() {
-  return `<footer class="tc-footer"><div class="tc-footer-inner"><p class="tc-footer-copyright">© 2026 UNITI INSEME LIMITED</p><nav class="tc-footer-links" aria-label="Informations légales"><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cookies/">Cookies</a></nav></div></footer>`;
+  return `<footer class="tc-footer"><section class="tc-footer-contact" aria-labelledby="tc-contact-title"><div><h2 id="tc-contact-title">Contactez-nous</h2><p>Besoin de renseignements sur votre projet de travaux ? Appelez-nous ou écrivez-nous.</p></div><div class="tc-footer-contact-links"><a href="tel:+33771815090"><span>Téléphone</span><strong>07 71 81 50 90</strong></a><a href="mailto:contact.travauxcorse@gmail.com"><span>E-mail</span><strong>contact.travauxcorse@gmail.com</strong></a></div></section><div class="tc-footer-inner"><p class="tc-footer-copyright">© 2026 UNITI INSEME LIMITED</p><nav class="tc-footer-links" aria-label="Informations légales"><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/cookies/">Cookies</a></nav></div></footer>`;
 }
 
 function renderPage() {
