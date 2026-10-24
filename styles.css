@@ -1486,3 +1486,7 @@ input[type=checkbox],input[type=radio]{width:20px;min-width:20px;height:20px;min
 .tc-footer .tc-footer-links a{font-size:11px;min-height:36px}
 .tc-footer .tc-footer-copyright{margin:2px 0 0;font-size:10px}
 }
+
+/* Keep one contextual request card and center articles without a sidebar. */
+.article-layout.article-layout--single{grid-template-columns:minmax(0,1fr);max-width:860px;margin-inline:auto}
+.article-body>.article-aside{position:static;top:auto;margin-top:32px}
