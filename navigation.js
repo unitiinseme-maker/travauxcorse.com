@@ -95,3 +95,15 @@
   const choice=read();if(choice==='accepted')start();else if(!choice)show();
   window.addEventListener('storage',e=>{if(e.key===key)location.reload();});
 })();
+
+// Free Cloudflare Web Analytics, separate from consent-gated Google Analytics.
+(()=>{
+  if(!['www.travauxcorse.com','travauxcorse.com'].includes(location.hostname))return;
+  if(/^\/(admin|artisan|client|api|tests)(\/|$)/.test(location.pathname))return;
+  if(document.querySelector('script[data-cf-beacon]'))return;
+  const beacon=document.createElement('script');
+  beacon.type='module';
+  beacon.src='https://static.cloudflareinsights.com/beacon.min.js';
+  beacon.setAttribute('data-cf-beacon',JSON.stringify({token:'8c8fe3e4fea244faa463804eefc882f8'}));
+  document.body.appendChild(beacon);
+})();
