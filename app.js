@@ -130,7 +130,7 @@ const seed = {
     brandBottom: "CORSE",
     tagline: "Vos travaux, notre priorité",
     headline: "Votre projet de travaux en Corse commence ici",
-    intro: "Particuliers, artisans et fournisseurs : TravauxCorse vous met en relation pour organiser vos travaux en Haute-Corse et en Corse-du-Sud, du premier besoin au choix des matériaux.",
+    intro: "Décrivez vos travaux et indiquez votre commune : TravauxCorse s’occupe de rechercher les professionnels adaptés à votre projet en Corse. Une seule demande, même pour plusieurs métiers.",
     contactEmail: "contact.travauxcorse@gmail.com",
     contactPhone: "07 71 81 50 90",
     footerText: "La plateforme locale qui qualifie les demandes, propose les bonnes entreprises et facilite l'achat direct des fournitures auprès de partenaires."
@@ -207,6 +207,7 @@ function normalizeState(next) {
   next.requestDraft.category = next.requestDraft.categories.join(" · ");
   next.filters = { ...structuredClone(seed.filters), ...(next.filters || {}) };
   next.siteSettings = { ...seed.siteSettings, ...(next.siteSettings || {}) };
+  if (next.siteSettings.intro === 'Particuliers, artisans et fournisseurs : TravauxCorse vous met en relation pour organiser vos travaux en Haute-Corse et en Corse-du-Sud, du premier besoin au choix des matériaux.') next.siteSettings.intro = seed.siteSettings.intro;
   delete next.customTrades;
   delete next.tradeVersion;
   next.requestDraft.step = Math.max(0, Math.min(5, Number(next.requestDraft.step) || 0));
@@ -304,8 +305,10 @@ function renderHome() {
       <div class="hero-copy">
         <p class="eyebrow">${escapeHtml(state.siteSettings.tagline)}</p>
         <h1>${escapeHtml(state.siteSettings.headline)}</h1>
+        <p class="hero-hook"><strong>Marre de chercher un artisan sans savoir à qui faire confiance ? On vous aide à faire le premier pas.</strong></p>
         <p>${escapeHtml(state.siteSettings.intro)}</p>
-      <div class="hero-actions">${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
+      <div class="hero-actions">${cta("Déposer ma demande gratuite", "request", "primary")}${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
+      <p class="hero-reassurance">Gratuit et sans engagement.</p>
       </div>
       <div class="quick-card" id="deposer">
         <h2>Parlez-nous de votre projet</h2>
