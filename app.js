@@ -307,7 +307,6 @@ function renderHome() {
         <h1>${escapeHtml(state.siteSettings.headline)}</h1>
         <p class="hero-hook"><strong>Marre de chercher un artisan sans savoir à qui faire confiance ? On vous aide à faire le premier pas.</strong></p>
         <p>${escapeHtml(state.siteSettings.intro)}</p>
-      <div class="hero-actions">${cta("Déposer ma demande gratuite", "request", "primary")}${cta("Découvrir nos partenaires", "suppliers", "secondary")}</div>
       <p class="hero-reassurance">Gratuit et sans engagement.</p>
       </div>
       <div class="quick-card" id="deposer">
