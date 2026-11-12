@@ -38,7 +38,7 @@ test('footer hides empty links, opens valid links safely, and survives app reren
     replaceWith(next){this.parent.append(next);this.remove();}
   }
   footer=new Element('div');const events={};
-  const scope={URL,console,document:{body:{},querySelector:()=>footer,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener(){}},MutationObserver:class{constructor(fn){observer=fn;}observe(){}},fetch:async()=>({ok:true,json:async()=>links})};
+  const scope={URL,console,location:{pathname:'/admin/',hostname:'localhost'},document:{body:{},querySelector:()=>footer,createElement:tag=>new Element(tag),addEventListener:(name,fn)=>events[name]=fn},window:{addEventListener(){}},MutationObserver:class{constructor(fn){observer=fn;}observe(){}},fetch:async()=>({ok:true,json:async()=>links})};
   const source=fs.readFileSync(__dirname+'/../navigation.js','utf8').split('// One lightweight footer integration for prerendered pages and app.js navigation.')[1];
   vm.runInNewContext(source,scope);await new Promise(setImmediate);
   assert.equal(footer.children.length,0);
