@@ -45,3 +45,53 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)load();});
   load();
 })();
+
+// Google Analytics: basic consent mode. No Google request before opt-in.
+(()=>{
+  if(window.tcAnalyticsInstalled || /^\/(admin|artisan|client)(\/|$)/.test(location.pathname))return;
+  window.tcAnalyticsInstalled=true;
+  const id='G-ZE60839KNB',key='tc-analytics-consent-v1',ttl=180*24*60*60*1000;
+  let active=false,loaded=false,banner;
+  function read(){try{const v=JSON.parse(localStorage.getItem(key));return v&&Date.now()-v.at<ttl&&['accepted','refused'].includes(v.value)?v.value:null;}catch{return null;}}
+  function cleanUrl(value){try{const u=new URL(value);return u.origin+u.pathname;}catch{return '';}}
+  function start(){
+    if(active)return;active=true;window['ga-disable-'+id]=false;
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=window.gtag||function(){window.dataLayer.push(arguments);};
+    gtag('consent','default',{analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
+    if(!loaded){
+      loaded=true;gtag('js',new Date());
+      gtag('config',id,{allow_google_signals:false,allow_ad_personalization_signals:false,cookie_expires:15552000,cookie_update:false,page_location:cleanUrl(location.href),page_referrer:cleanUrl(document.referrer)});
+      const s=document.createElement('script');s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;document.head.append(s);
+    }
+  }
+  function clearCookies(){
+    const domains=[location.hostname,'.'+location.hostname,'.travauxcorse.com'];
+    document.cookie.split(';').forEach(part=>{const name=part.split('=')[0].trim();if(!/^_ga($|_)/.test(name))return;
+      document.cookie=name+'=; Max-Age=0; path=/';
+      domains.forEach(domain=>{document.cookie=name+'=; Max-Age=0; path=/; domain='+domain;});
+    });
+  }
+  function choose(value){
+    try{localStorage.setItem(key,JSON.stringify({value,at:Date.now()}));}catch{}
+    banner?.remove();banner=null;
+    if(value==='accepted'){start();}else{
+      window['ga-disable-'+id]=true;clearCookies();
+      if(loaded)location.reload();
+    }
+  }
+  function show(){
+    if(banner){banner.querySelector('button').focus();return;}
+    banner=document.createElement('section');banner.className='tc-consent';banner.setAttribute('role','region');banner.setAttribute('aria-label','Choix des cookies de mesure d’audience');
+    banner.innerHTML='<strong>Mesurer pour améliorer votre expérience</strong><p>Avec votre accord, TravauxCorse utilise Google Analytics pour mesurer les visites et les pages consultées. Vous pouvez refuser et continuer à utiliser le site normalement. <a href="/cookies/">En savoir plus</a>.</p><div><button type="button" data-consent="refused">Refuser</button><button type="button" data-consent="accepted">Accepter</button></div>';
+    banner.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.consent)));
+    document.body.append(banner);
+  }
+  function footer(){document.querySelectorAll('.tc-footer-links').forEach(nav=>{
+    if(nav.querySelector('[data-cookie-settings]'))return;
+    const b=document.createElement('button');b.type='button';b.dataset.cookieSettings='';b.className='tc-cookie-settings';b.textContent='Gérer les cookies';b.addEventListener('click',show);nav.append(b);
+  });}
+  new MutationObserver(footer).observe(document.body,{childList:true,subtree:true});footer();
+  const choice=read();if(choice==='accepted')start();else if(!choice)show();
+  window.addEventListener('storage',e=>{if(e.key===key)location.reload();});
+})();
