@@ -528,7 +528,7 @@ function renderAidCard(aid) {
 }
 
 function renderPartner() {
-  const microRegions = ["Agglomération de Bastia", "Cap Corse", "Marana-Golo", "Nebbiu – Conca d’Oru", "Calvi-Balagne", "L’Île-Rousse – Balagne", "Castagniccia-Casinca", "Costa Verde", "Centre Corse", "Pasquale Paoli", "Oriente", "Fium’Orbu-Castellu", "Pays ajaccien", "Celavu-Prunelli", "Ouest Corse", "Pieve de l’Ornano", "Sartenais-Valinco-Taravo", "Alta Rocca – Côte des Nacres", "Sud Corse"];
+  const microRegions = ["Grand Bastia", "Balagne", "Centre Corse", "Côte orientale", "Côte Ouest", "Grand Ajaccio", "Grand Valinco", "Sud Corse"];
   return `<section class="page-section narrow">
     <p class="eyebrow">Artisans et entreprises du bâtiment</p><h1>Rejoignez le réseau TravauxCorse</h1><p>Recevez des demandes qualifiées, développez votre visibilité locale et valorisez votre savoir-faire auprès de clients en Corse.</p>
     <div class="feature-grid compact">${["Présentez votre activité", "Recevez des projets adaptés", "Échangez par e-mail", "Intervenez dans votre secteur"].map((x) => `<article><h3>${x}</h3><p>Une présence claire, locale et orientée projets concrets.</p></article>`).join("")}</div>
