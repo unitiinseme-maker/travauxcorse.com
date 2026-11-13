@@ -327,7 +327,7 @@ function renderHome() {
     </section>
     <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2>${activeTrades().length?`<details class="trade-index"><summary>Voir les ${activeTrades().length} catégories de travaux</summary><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></details>`:`<p role="status">${tradeStatus()}</p>`}</section>
     ${renderEnergyIntro()}
-    <section class="band lead-final"><h2>Un projet en tête, même encore flou ?</h2><p>Commençons par en parler. Une demande gratuite, sans compte à créer et sans engagement.</p><a class="primary link-button" href="/etre-rappele/">Demander un rappel</a><p>Ou appelez le <a href="tel:+33771815090">07 71 81 50 90</a>.</p></section>
+    <section class="band lead-final" aria-labelledby="lead-final-title"><div class="lead-final-copy"><h2 id="lead-final-title">Un projet en tête, même encore flou ?</h2><p>Commençons par en parler. Une demande gratuite, sans compte à créer et sans engagement.</p></div><div class="lead-final-actions"><a class="primary link-button" href="/etre-rappele/">Demander un rappel</a><p class="lead-final-phone">Ou appelez le <a href="tel:+33771815090">07 71 81 50 90</a></p></div></section>
     </div>
   `;
 }
