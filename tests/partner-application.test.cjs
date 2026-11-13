@@ -23,3 +23,14 @@ test('standard HTML POST has an on-site confirmation instead of FormSubmit redir
   const r=await request('POST',new URLSearchParams(body).toString(),form);
   assert.equal(r.status,200);assert.match(r.headers['Content-Type'],/text\/html/);assert.match(r.body,/candidature a bien été envoyée/);assert.match(r.body,/Retour au site/);
 });
+test('all selected micro-regions are delivered in JSON and standard form submissions',async()=>{
+  configured=true;accepted=true;
+  const values={...body,zones:['Marana-Golo','Castagniccia-Casinca','Marana-Golo']};delete values.zone;
+  let r=await request('POST',values);assert.equal(r.status,200);
+  assert.match(deliveries.at(-1).body,/Zones d’intervention : Marana-Golo · Castagniccia-Casinca/);
+  const form=new URLSearchParams({...body});form.delete('zone');form.append('zones','Cap Corse');form.append('zones','Sud Corse');
+  r=await request('POST',form.toString(),{...headers,'content-type':'application/x-www-form-urlencoded'});assert.equal(r.status,200);
+  assert.match(deliveries.at(-1).body,/Zones d’intervention : Cap Corse · Sud Corse/);
+  r=await request('POST',{...values,zones:[]});assert.equal(r.status,400);
+  r=await request('POST',{...values,zones:Array(26).fill('Marana-Golo')});assert.equal(r.status,400);
+});

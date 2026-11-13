@@ -528,6 +528,7 @@ function renderAidCard(aid) {
 }
 
 function renderPartner() {
+  const microRegions = ["Agglomération de Bastia", "Cap Corse", "Marana-Golo", "Nebbiu – Conca d’Oru", "Calvi-Balagne", "L’Île-Rousse – Balagne", "Castagniccia-Casinca", "Costa Verde", "Centre Corse", "Pasquale Paoli", "Oriente", "Fium’Orbu-Castellu", "Pays ajaccien", "Celavu-Prunelli", "Ouest Corse", "Pieve de l’Ornano", "Sartenais-Valinco-Taravo", "Alta Rocca – Côte des Nacres", "Sud Corse"];
   return `<section class="page-section narrow">
     <p class="eyebrow">Artisans et entreprises du bâtiment</p><h1>Rejoignez le réseau TravauxCorse</h1><p>Recevez des demandes qualifiées, développez votre visibilité locale et valorisez votre savoir-faire auprès de clients en Corse.</p>
     <div class="feature-grid compact">${["Présentez votre activité", "Recevez des projets adaptés", "Échangez par e-mail", "Intervenez dans votre secteur"].map((x) => `<article><h3>${x}</h3><p>Une présence claire, locale et orientée projets concrets.</p></article>`).join("")}</div>
@@ -536,7 +537,7 @@ function renderPartner() {
       <div class="form-grid">
         <label>Entreprise<input name="company" required /></label><label>Responsable<input name="manager" required /></label>
         <label>Email<input type="email" name="email" required /></label><label>Téléphone<input type="tel" autocomplete="tel" inputmode="tel" minlength="8" maxlength="25" title="Saisissez un numéro de téléphone valide (8 à 25 caractères)." name="phone" required /></label>
-        <fieldset class="full partner-trades"><legend>Métiers concernés *</legend><p>Cochez tous les métiers de votre entreprise.</p>${activeTrades().length?`<div class="trade-choices">${activeTrades().map(t=>`<label><input type="checkbox" name="trades" value="${escapeHtml(t)}"> ${escapeHtml(t)}</label>`).join('')}</div>`:`<p role="status">${tradeStatus()}</p>`}</fieldset><label>Zone<select name="zone"><option>Haute-Corse</option><option>Corse-du-Sud</option><option>Toute la Corse</option></select></label>
+        <fieldset class="full partner-trades"><legend>Métiers concernés *</legend><p>Cochez tous les métiers de votre entreprise.</p>${activeTrades().length?`<div class="trade-choices">${activeTrades().map(t=>`<label><input type="checkbox" name="trades" value="${escapeHtml(t)}"> ${escapeHtml(t)}</label>`).join('')}</div>`:`<p role="status">${tradeStatus()}</p>`}</fieldset><fieldset class="full partner-trades" data-partner-zones><legend>Zones d’intervention *</legend><p>Sélectionnez une ou plusieurs micro-régions où vous intervenez.</p><details class="trade-picker"><summary>Choisir mes micro-régions</summary><div class="trade-choices">${microRegions.map(zone=>`<label><input type="checkbox" name="zones" value="${escapeHtml(zone)}"> ${escapeHtml(zone)}</label>`).join('')}</div></details></fieldset>
         <label class="full">Présentation<textarea name="message" placeholder="Qualifications, assurances, zones, spécialités..."></textarea></label>
       </div>
       <p>Vos coordonnées seront envoyées à TravauxCorse pour examiner votre candidature. <a href="/confidentialite/">Confidentialité</a></p><label class="check"><input type="checkbox" name="contactConsent" value="oui" required> J’accepte d’être contacté au sujet de ma candidature.</label><p data-send-status role="status" aria-live="polite"></p><button class="primary" type="submit">Envoyer ma candidature</button>
@@ -742,7 +743,9 @@ function bindForms() {
     if(form.dataset.sending==='true')return;
     const formData=new FormData(form),data=Object.fromEntries(formData);
     data.trades=formData.getAll('trades');
+    data.zones=formData.getAll('zones');
     if(!data.trades.length){status.textContent='Cochez au moins un métier pour envoyer votre candidature.';form.querySelector('[name="trades"]')?.focus();return;}
+    if(!data.zones.length){status.textContent='Sélectionnez au moins une micro-région pour envoyer votre candidature.';form.querySelector('[data-partner-zones] details').open=true;form.querySelector('[name="zones"]')?.focus();return;}
     if(!validPhone(data.phone)){status.textContent='Indiquez un téléphone valide.';return;}
     form.dataset.sending='true';button.disabled=true;status.textContent='Envoi de votre candidature…';
     try{
