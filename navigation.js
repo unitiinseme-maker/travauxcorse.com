@@ -107,3 +107,11 @@
   beacon.setAttribute('data-cf-beacon',JSON.stringify({token:'8c8fe3e4fea244faa463804eefc882f8'}));
   document.body.appendChild(beacon);
 })();
+
+// Short first-contact form, shared by public pages and SEO guides.
+(() => {
+  if (/^\/(admin|artisan|client|api|tests)(\/|$)/.test(location.pathname)) return;
+  if (document.querySelector('script[data-tc-leads]')) return;
+  const script = document.createElement('script');
+  script.src = '/lead-capture.js'; script.defer = true; script.dataset.tcLeads = ''; document.head.append(script);
+})();

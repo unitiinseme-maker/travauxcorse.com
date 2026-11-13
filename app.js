@@ -144,6 +144,7 @@ const seed = {
 
 const routePaths = {home:"/",energy:"/travaux-energetiques/",suppliers:"/partenaires/",request:"/deposer-une-demande/",partner:"/devenir-partenaire/"};
 let requestAttachments = [];
+let detailedRequestOpen = false;
 let state = loadState();
 let categories=[];
 let categoriesLoaded=false;
@@ -309,18 +310,11 @@ function renderHome() {
         <p>${escapeHtml(state.siteSettings.intro)}</p>
       <p class="hero-reassurance">Gratuit et sans engagement.</p>
       </div>
-      <div class="quick-card" id="deposer">
-        <h2>Parlez-nous de votre projet</h2>
-        <details class="trade-picker" data-home-picker><summary>Types de travaux <span data-trade-count>${selectedCategories(state.requestDraft).length ? `(${selectedCategories(state.requestDraft).length} sélectionnés)` : "— choisir"}</span></summary>
-          <p id="home-trade-help">Cochez un ou plusieurs métiers.</p>${renderTradeChoices("home")}
-        </details>
-        <p class="form-error" data-home-error role="alert"></p>
-        <label for="home-commune">Commune du chantier</label>
-        <input id="home-commune" autocomplete="address-level2" maxlength="100" data-home-commune value="${escapeHtml(state.requestDraft.commune)}" placeholder="Ex : Bastia" />
-        <label for="home-delay">Délai</label>
-        <select id="home-delay" data-home-delay>${["Urgent", "Sous 1 mois", "Sous 3 mois", "Pas de délai précis"].map(x => `<option ${state.requestDraft.delay === x ? "selected" : ""}>${x}</option>`).join("")}</select>
-        <button class="primary" data-start-request>Déposer une demande</button>
-        <p class="muted">Une demande gratuite, sans engagement.</p>
+      <div class="quick-card lead-card" id="deposer">
+        <p class="eyebrow">Votre premier contact</p>
+        <h2>Parlons de vos travaux</h2>
+        <div data-lead-capture="home"></div>
+        <noscript><p>Appelez TravauxCorse au <a href="tel:+33771815090">07 71 81 50 90</a>.</p></noscript>
       </div>
     </section>
     <section class="stats">
@@ -329,10 +323,19 @@ function renderHome() {
     <section class="band">
       <p class="eyebrow">Simple et efficace</p>
       <h2>Comment ça marche ?</h2>
-      <div class="steps">${["Vous déposez votre projet", "TravauxCorse identifie les professionnels", "L’artisan confirme son intervention", "Le fournisseur prépare les matériaux"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Particulier ou professionnel : précisez les travaux, la commune et vos attentes.", "Votre demande est examinée pour rechercher les entreprises adaptées à votre besoin.", "Vous échangez sur le chantier, comparez les devis et choisissez votre entreprise.", "Selon le projet, le partenaire fournit les matériaux. Vous pouvez aussi les acheter directement auprès de lui."][i]}</p></article>`).join("")}</div>
+      <div class="steps lead-steps">${["Vous nous présentez votre besoin", "Nous recherchons les professionnels", "Vous gardez le choix"].map((title, i) => `<article><span>${String(i + 1).padStart(2, "0")}</span><h3>${title}</h3><p>${["Laissez votre nom, votre téléphone et la commune du chantier. Les détails peuvent se préciser pendant l’échange.", "TravauxCorse examine votre projet et recherche les entreprises correspondant aux travaux et à votre secteur.", "Vous échangez avec les professionnels disponibles et décidez de la suite. Aucun engagement avant votre accord."][i]}</p></article>`).join("")}</div>
     </section>
     <section class="band"><p class="eyebrow">Tous vos travaux</p><h2>Les métiers du bâtiment, au même endroit</h2>${activeTrades().length?`<details class="trade-index"><summary>Voir les ${activeTrades().length} catégories de travaux</summary><div class="trade-directory">${activeTrades().map(t=>`<span>${escapeHtml(t)}</span>`).join("")}</div></details>`:`<p role="status">${tradeStatus()}</p>`}</section>
+    <section class="band lead-benefits"><p class="eyebrow">Un projet plus simple à démarrer</p><h2>Vous avez l’idée. Nous vous aidons à trouver à qui en parler.</h2><div class="lead-benefit-grid"><article><h3>Un premier échange humain</h3><p>Vous n’avez pas besoin de connaître tous les termes techniques ou de disposer d’un dossier complet pour nous contacter.</p></article><article><h3>Plusieurs métiers, une seule demande</h3><p>Plomberie, électricité, menuiserie, peinture ou rénovation : présentez l’ensemble de vos besoins au même endroit.</p></article><article><h3>Votre commune compte</h3><p>La recherche tient compte du lieu du chantier, en Haute-Corse ou en Corse-du-Sud, et des entreprises disponibles.</p></article></div></section>
     ${renderEnergyIntro()}
+    <section class="band lead-faq"><p class="eyebrow">Avant de vous lancer</p><h2>Vos questions, simplement</h2>${[
+      ["La demande de rappel est-elle gratuite ?", "Oui. Contacter TravauxCorse et présenter votre projet est gratuit et sans engagement. Les travaux éventuels font l’objet d’un devis distinct avec le professionnel."],
+      ["Faut-il déjà avoir un budget ou des plans ?", "Non. Votre commune et une première idée des travaux suffisent pour engager la discussion. Vous pourrez préciser les dimensions, le budget et les photos ensuite."],
+      ["Qui réalise les travaux ?", "TravauxCorse est une plateforme de mise en relation exploitée par UNITI INSEME LIMITED. Les travaux sont réalisés par les entreprises que vous choisissez ; leurs qualifications et assurances doivent correspondre au chantier."],
+      ["Puis-je demander plusieurs corps de métier ?", "Oui. Une rénovation peut nécessiter plusieurs entreprises. Décrivez votre projet global : les métiers nécessaires seront précisés pendant l’échange."],
+      ["Aurai-je automatiquement un devis ou un artisan disponible ?", "La demande sert à rechercher des professionnels adaptés. Leur disponibilité et les conditions d’intervention sont à confirmer. Vous restez libre de comparer les propositions et de ne pas poursuivre."]
+    ].map(([q,a])=>`<details><summary>${q}</summary><p>${a}</p></details>`).join('')}</section>
+    <section class="band lead-final"><h2>Un projet en tête, même encore flou ?</h2><p>Commençons par en parler. Une demande gratuite, sans compte à créer et sans engagement.</p><a class="primary link-button" href="/etre-rappele/">Demander un rappel</a><p>Ou appelez le <a href="tel:+33771815090">07 71 81 50 90</a>.</p></section>
     </div>
   `;
 }
@@ -373,10 +376,13 @@ function renderRequest() {
   return `<section class="page-section narrow">
     <p class="eyebrow">Gratuit · Sans engagement</p>
     <h1>Déposer une demande</h1>
-    <p>Sans création de compte. À la dernière étape, une vérification antispam précède l’envoi par email à TravauxCorse. Votre brouillon est conservé pendant cette session pour vous permettre de revenir en arrière.</p>
+    <p>Vous pouvez commencer par un rappel gratuit ou décrire votre projet en détail. Choisissez ce qui vous convient.</p>
+    <section class="lead-request"><h2>Je préfère en parler</h2><div data-lead-capture="request"></div></section>
+    <details class="detailed-request" data-detailed-request ${d.step > 0 || detailedRequestOpen ? 'open' : ''}><summary>Je préfère décrire mon projet en détail</summary>
+    <p>Vous pourrez ajouter vos photos, dimensions et précisions. Sans compte à créer ; une vérification antispam précède l’envoi du dossier détaillé.</p>
     <div class="progress"><div style="width:${(d.step / 5) * 100}%"></div></div>
     <div class="stepper">${steps.map((s, i) => `<button class="${d.step === i ? "active" : ""}" data-step="${i}" ${i > d.step + 1 ? "disabled" : ""} ${i === d.step ? 'aria-current="step"' : ""}><span>${i + 1}</span>${s}</button>`).join("")}</div>
-    <form class="form-panel" data-request-form><p data-request-error class="form-error" role="alert" tabindex="-1"></p>${renderRequestStep()}</form>
+    <form class="form-panel" data-request-form><p data-request-error class="form-error" role="alert" tabindex="-1"></p>${renderRequestStep()}</form></details>
   </section>`;
 }
 
@@ -643,6 +649,7 @@ function bindAttachments() {
 
 function bindRequest() {
   bindAttachments();
+  document.querySelector("[data-detailed-request]")?.addEventListener("toggle", event => { detailedRequestOpen = event.currentTarget.open; });
   document.querySelector("[data-request-form]")?.addEventListener("input", () => { captureRequestDraft(); saveState(); });
   document.querySelector("[data-request-form]")?.addEventListener("change", () => { captureRequestDraft(); saveState(); });
   document.querySelectorAll("[data-step]").forEach((el) => el.addEventListener("click", () => {
