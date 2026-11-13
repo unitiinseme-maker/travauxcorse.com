@@ -1,5 +1,5 @@
 const {test}=require('node:test'),assert=require('node:assert/strict');
-const {createHandler}=require('../api/callback-request');
+const {createHandler}=require('../lib/callback-request');
 const {normalizeRequest}=require('../lib/project-request');
 const headers={host:'www.travauxcorse.com',origin:'https://www.travauxcorse.com','content-type':'application/json','x-forwarded-for':'192.0.2.10'};
 const body={name:'Client test',phone:'06 12 34 56 78',commune:'Bastia',contactConsent:'oui',requestId:'00000000-0000-4000-8000-000000000001',originPath:'/conseils/electricien-bastia/'};

@@ -11,7 +11,9 @@ function parse(raw){
     try{return {form_data:JSON.parse(fields.get('form_data'))};}catch{return null;}
   }
 }
+const callbackRequest=require('../lib/callback-request');
 module.exports=async function(req,res){
+  if(new URL(req.url||'/', 'https://localhost').searchParams.get('callback')==='1')return callbackRequest(req,res);
   res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
   if(req.method!=='POST'){res.setHeader('Allow','POST');return reply(res,405,{error:'Méthode non autorisée.'});}
   // The notification must never fail merely because the private copy cannot be made.

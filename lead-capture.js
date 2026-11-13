@@ -38,7 +38,7 @@
       if (!/^[+0-9() .-]+$/.test(draft.phone || '') || !/^\d{8,15}$/.test((draft.phone || '').replace(/\D/g,''))) {status.textContent = 'Indiquez un numéro de téléphone valide.'; form.elements.phone.focus(); return;}
       draft.sending = true; button.disabled = true; status.textContent = 'Enregistrement de votre demande…';
       try {
-        const response = await fetch('/api/callback-request', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...draft, sending:undefined, website:form.elements.website.value}), signal:AbortSignal.timeout(25000)});
+        const response = await fetch('/api/ingest-request?callback=1', {method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...draft, sending:undefined, website:form.elements.website.value}), signal:AbortSignal.timeout(25000)});
         const result = await response.json();
         if (!response.ok || !result.received) throw Error(result.error || 'L’enregistrement n’a pas été confirmé. Réessayez.');
         drafts.set(key, {received:true});
