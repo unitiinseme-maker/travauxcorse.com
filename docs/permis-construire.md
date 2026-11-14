@@ -69,3 +69,15 @@ Deuxième synchronisation serveur réussie à 11 h 42 (Paris) : 134 dossiers con
 Limite de validation restante : le rendu connecté a été contrôlé sur ordinateur. Les adaptations responsive sont intégrées, mais le contrôle visuel sur téléphone et tablette n’a pas été effectué et reste à confirmer. Aucun abonnement supplémentaire n’a été souscrit.
 
 La couverture annoncée dans les métadonnées est le 30 septembre 2026 ; le lot contient néanmoins au moins une décision datée du 6 octobre 2026. Les dates officielles sont conservées telles quelles, sans extrapoler la complétude des semaines récentes.
+
+## Complément contact et dossier commercial A4 — 14 novembre 2026
+
+Ajout de la dénomination, du SIREN et du SIRET des personnes morales officiellement diffusées. Contrôle de la catégorie juridique (exclusion de la catégorie entrepreneur individuel), du SIREN et de la dénomination avant stockage. Les champs de localité/code postal du demandeur, noms de particuliers, domiciles privés, emails et téléphones non diffusés ne sont pas importés. Aucun rapprochement avec les réseaux sociaux.
+
+Les coordonnées communiquées directement ou professionnelles publiques peuvent être saisies manuellement avec une provenance obligatoire. Indicateur et filtre de possibilité de contact ; suivi des renseignements publics à demander à la mairie. Aucune prise de contact automatique.
+
+Export privé HTML imprimable en A4, individuel ou regroupant tous les projets des filtres appliqués, sans limitation à la page visible. Le commercial peut ouvrir le fichier puis choisir Imprimer / Enregistrer au format PDF. Chaque projet commence sur une nouvelle page ; les longues fiches peuvent occuper plusieurs pages. L'export contient le projet, l'identité professionnelle disponible, les contacts saisis, les suggestions métiers, le potentiel, le suivi, les notes et les sources. Les données absentes portent « Non disponible ». Le fichier téléchargé est confidentiel et n'est pas un lien public vers les données internes.
+
+Tests : 49 tests automatisés réussis, dont accès anonyme interdit aux exports, échappement HTML, filtrage des personnes morales, exigence de provenance des contacts, export de 25 dossiers de test isolés au-delà de la pagination et filtre départemental. 333 pages contrôlées sans erreur structurelle. Essai réel : 138 lignes officielles / 134 projets uniques, 72 en 2A et 62 en 2B, 55 avec personne morale identifiée ; seconde fusion sans doublon ni modification. La migration relit une fois les 90 jours pour compléter les dossiers existants ; la fréquence hebdomadaire reste inchangée.
+
+Fichiers de ce complément : `lib/permit-contact.js`, `lib/permit-export.js`, `lib/permit-api.js`, `lib/permit-model.js`, `lib/permit-source.js`, `lib/permit-sync.js`, `admin/permis.js`, `admin/permis.css`, `admin/permis/index.html`, `tests/permits.test.cjs`, ce rapport.
