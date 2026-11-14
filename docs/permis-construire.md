@@ -50,7 +50,7 @@ Essai réel du 14/11/2026 : 83 lignes logements, 47 locaux, 6 PA et 2 PD ; 138 l
 ## Fichiers
 
 - Interface : `admin/permis/index.html`, `admin/permis.css`, `admin/permis.js` ; entrée de menu dans `admin/index.html`.
-- API : `api/permits.js`, `api/permits-sync.js`.
+- API : `lib/permit-api.js`, `lib/permit-cron.js`, routées par `api/submissions.js` et les réécritures Vercel. Ce regroupement respecte la limite de 12 fonctions de l’hébergement Hobby existant.
 - Logique : `lib/permit-source.js`, `lib/permit-model.js`, `lib/permit-store.js`, `lib/permit-sync.js`.
 - Planification : `vercel.json`.
 - Vérification : `tests/permits.test.cjs`, `scripts/test-permits-real.cjs`.

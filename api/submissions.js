@@ -4,6 +4,10 @@ const {cmsSession,cmsConfig}=require('./editorial');
 const {normalizeRequest}=require('../lib/project-request');
 const json=(res,status,value)=>{res.statusCode=status;res.setHeader('Content-Type','application/json; charset=utf-8');res.end(JSON.stringify(value));};
 module.exports=async function(req,res){
+  const route=new URL(req.url,'https://localhost');
+  const view=req.query?.view||route.searchParams.get('view');
+  if(view==='permits'||route.pathname==='/api/permits')return require('../lib/permit-api')(req,res);
+  if(view==='permits-sync'||route.pathname==='/api/permits-sync')return require('../lib/permit-cron')(req,res);
   res.setHeader('Cache-Control','private, no-store');
   res.setHeader('X-Content-Type-Options','nosniff');
   if(req.method!=='GET'){res.setHeader('Allow','GET');return json(res,405,{error:'Méthode non autorisée.'});}

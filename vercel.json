@@ -1,9 +1,6 @@
 {
   "functions": {
-    "api/permits.js": {
-      "maxDuration": 300
-    },
-    "api/permits-sync.js": {
+    "api/submissions.js": {
       "maxDuration": 300
     },
     "api/editorial.js": {
@@ -11,6 +8,10 @@
     }
   },
   "crons": [{"path":"/api/permits-sync","schedule":"0 5 * * 1"}],
+  "rewrites": [
+    {"source":"/api/permits", "destination":"/api/submissions?view=permits"},
+    {"source":"/api/permits-sync", "destination":"/api/submissions?view=permits-sync"}
+  ],
   "headers": [
     {
       "source": "/(.*)",

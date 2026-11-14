@@ -35,7 +35,7 @@ test('filters, dates, null numerical values, seen status and commercial indicato
 const blob=require('@vercel/blob'),entries=new Map();let writes=0;
 blob.get=async path=>entries.has(path)?{statusCode:200,blob:{etag:entries.get(path).etag},stream:new Blob([entries.get(path).text]).stream()}:null;
 blob.put=async(path,value,options)=>{assert.equal(options.access,'private');const old=entries.get(path);if((options.ifMatch&&old?.etag!==options.ifMatch)||(!options.allowOverwrite&&!options.ifMatch&&old))throw new Error('precondition failed: already exists');const etag=String(++writes);entries.set(path,{text:String(value),etag});return {etag};};
-const handler=require('../api/permits'),cron=require('../api/permits-sync');
+const handler=require('../lib/permit-api'),cron=require('../lib/permit-cron');
 const secret='s'.repeat(64),password='test-only-not-a-production-password';process.env.CMS_SECRET=secret;process.env.CMS_ADMIN_PASSWORD=password;
 const payload=Buffer.from(JSON.stringify({exp:Date.now()+360000,nonce:'permit-test',password:crypto.createHash('sha256').update(password).digest('hex')})).toString('base64url');
 const cookie='__Host-tc-editor='+payload+'.'+crypto.createHmac('sha256',secret).update(payload).digest('base64url');
@@ -45,6 +45,8 @@ function call(method,url,body,head={},fn=handler){return new Promise((resolve,re
 test('admin-only boundary, CSRF, detail, persisted follow-up, concurrent edit and idempotent conversion',async()=>{
   const db={version:1,records:mergeRecords({},[p],now).records,followups:{},sync:{}};entries.set('private-permits/state.json',{text:JSON.stringify(db),etag:'initial'});
   assert.equal((await call('GET','/api/permits')).status,401);assert.equal((await call('POST','/api/permits',{action:'sync'})).status,401);
+  assert.equal((await call('GET','/api/submissions?view=permits',null,{},require('../api/submissions'))).status,401);
+  assert.equal((await call('GET','/api/submissions?view=permits-sync',null,{},require('../api/submissions'))).status,401);
   assert.equal((await call('GET','/api/permits',null,{cookie:'__Host-tc-editor=forged'})).status,401);
   assert.equal((await call('GET','/api/permits-sync',null,{},cron)).status,401);
   assert.equal((await call('POST','/api/permits',{action:'seen',id:p.id},{...headers,'x-csrf-token':'wrong'})).status,403);
