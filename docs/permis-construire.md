@@ -57,3 +57,9 @@ Essai réel du 14/11/2026 : 83 lignes logements, 47 locaux, 6 PA et 2 PD ; 138 l
 - Présent rapport : `docs/permis-construire.md`.
 
 Les contrôles automatisés ne remplacent pas une validation visuelle dans une session administrateur authentifiée sur téléphone, tablette et ordinateur.
+
+## Mise en service du 14 novembre 2026
+
+Publication de production confirmée sur `www.travauxcorse.com`. Premier import serveur réussi à 11 h 38, heure de Paris : 134 autorisations enregistrées dans le Blob privé. Les premières tentatives ont rencontré une indisponibilité réseau temporaire ; aucune donnée partielle n’a été publiée. La récupération prévoit désormais aussi des reprises limitées sur les erreurs réseau.
+
+48 tests automatisés réussis ; contrôle des liens et de la structure de 333 pages sans erreur. L’API en ligne refuse l’accès anonyme (HTTP 401) et la page de connexion privée a été vérifiée dans le navigateur. Le contrôle visuel des fiches connectées, notamment sur mobile et tablette, reste à réaliser avec une session administrateur : il n’est pas présenté comme effectué.

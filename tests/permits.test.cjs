@@ -13,7 +13,7 @@ test('real source record stays project-only and receives conditional trade sugge
   assert.equal(analyze({},'PC').area,null);assert.equal(analyze({},'PC').homes,null);
   assert.equal(analyze({SURF_HAB_CREEE:10,NATURE_PROJET_COMPLETEE:5},'PC').potential,0);
   assert.equal(analyze({NB_LGT_TOT_CREES:15},'PC').potential,3);
-  assert.deepEqual(analyze({},'PD').trades.map(t=>t.name),['Démolition']);
+  assert.deepEqual(analyze({},'PD').trades.map(t=>t.name),['Démolition & Dépose']);
   assert.throws(()=>normalize({...raw,DEP_CODE:'75'},source));
 });
 test('repeat imports and cross-file duplicates retain ID, first retrieval and update history',()=>{
