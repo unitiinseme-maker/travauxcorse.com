@@ -1,9 +1,16 @@
 {
   "functions": {
+    "api/permits.js": {
+      "maxDuration": 300
+    },
+    "api/permits-sync.js": {
+      "maxDuration": 300
+    },
     "api/editorial.js": {
       "maxDuration": 60
     }
   },
+  "crons": [{"path":"/api/permits-sync","schedule":"0 5 * * 1"}],
   "headers": [
     {
       "source": "/(.*)",
