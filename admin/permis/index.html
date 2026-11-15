@@ -6,6 +6,7 @@
 <section id="login" hidden class="panel login"><h2>Accès administrateur</h2><p>Utilisez votre accès habituel TravauxCorse.</p><form id="login-form"><label>Mot de passe<input id="password" type="password" autocomplete="current-password" required></label><button>Se connecter</button></form></section>
 <div id="private" hidden>
 <aside class="source-note" id="source-note"></aside>
+<details class="panel"><summary>Importer une recherche de contacts vérifiée</summary><p>Rattachement par SIREN à une société déjà présente. Coordonnées professionnelles publiques uniquement, avec sources et date. Les notes et contacts saisis manuellement sont conservés.</p><form id="research-form"><label>Résultats JSON vérifiés<textarea id="research-json" rows="5" maxlength="120000" required></textarea></label><button>Importer les contacts vérifiés</button><p id="research-feedback" role="status"></p></form></details>
 <section class="metrics" id="metrics" aria-label="Indicateurs des autorisations"></section>
 <details class="panel insights"><summary>Répartition et suivi commercial</summary><div id="insights"></div></details>
 <div class="workspace"><aside class="panel filters"><h2>Affiner les projets</h2><form id="filters">

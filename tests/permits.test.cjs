@@ -79,3 +79,17 @@ test('only validated legal entities are imported; private identity is excluded',
   const db={records:{[p.id]:entity},followups:{}};assert.equal(queryRecords(db,new URLSearchParams('contact=Personne+morale+identifiée')).total,1);assert.equal(queryRecords(db,new URLSearchParams('contact=Coordonnées+disponibles')).total,0);
   const html=require('../lib/permit-export')(p,{notes:'<script>alert(1)</script>'});assert(!html.includes('<script>'));assert(html.includes('&lt;script&gt;'));assert(html.includes('UNITI INSEME LIMITED'));
 });
+test('professional research is shared by SIREN, idempotent and preserves manual follow-up',()=>{
+ const {importResearch,attachResearch}=require('../lib/permit-research');
+ const entity=normalize({...raw,DENOM_DEM:'Fixture',SIREN_DEM:'123456789',CJ_DEM:5499},source);
+ const db={records:{one:entity,two:{...entity,id:'other'}},followups:{one:{notes:'Conserver'}}};
+ const row={siren:'123456789',phone:'04 00 00 00 00',email:'fixture@example.org',leaders:'Fixture — Gérant',note:'Test isolé',checkedAt:'2026-01-01',sources:['https://example.org/contact']};
+ assert.deepEqual(importResearch(db,[row]),{companies:1,updated:1,permits:2});
+ assert.equal(importResearch(db,[row]).updated,0);assert.equal(db.followups.one.notes,'Conserver');
+ assert.equal(attachResearch(entity,db).businessResearch.email,row.email);
+ assert.equal(queryRecords(db,new URLSearchParams('contact=Coordonnées+disponibles')).total,2);
+ assert.match(require('../lib/permit-export')(attachResearch(entity,db),{}),/fixture@example.org/);
+ const before=JSON.stringify(db);
+ for(const bad of [{...row,siren:'999999999'},{...row,sources:['javascript:alert(1)']},{...row,checkedAt:'2025-01-01'}])assert.throws(()=>importResearch(db,[bad]));
+ assert.throws(()=>importResearch(db,[row,row]));assert.equal(JSON.stringify(db),before);
+});
