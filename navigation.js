@@ -48,7 +48,7 @@
 
 // Google Analytics: basic consent mode. No Google request before opt-in.
 (()=>{
-  if(window.tcAnalyticsInstalled || /^\/(admin|artisan|client)(\/|$)/.test(location.pathname))return;
+  if(window.self!==window.top || window.tcAnalyticsInstalled || /^\/(admin|artisan|client|api|tests)(\/|$)/.test(location.pathname))return;
   window.tcAnalyticsInstalled=true;
   const id='G-ZE60839KNB',key='tc-analytics-consent-v1',ttl=180*24*60*60*1000;
   let active=false,loaded=false,banner;
@@ -98,7 +98,7 @@
 
 // Free Cloudflare Web Analytics, separate from consent-gated Google Analytics.
 (()=>{
-  if(!['www.travauxcorse.com','travauxcorse.com'].includes(location.hostname))return;
+  if(window.self!==window.top || !['www.travauxcorse.com','travauxcorse.com'].includes(location.hostname))return;
   if(/^\/(admin|artisan|client|api|tests)(\/|$)/.test(location.pathname))return;
   if(document.querySelector('script[data-cf-beacon]'))return;
   const beacon=document.createElement('script');
