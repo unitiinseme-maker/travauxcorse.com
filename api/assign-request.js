@@ -23,7 +23,7 @@ module.exports=async function(req,res){
     const blob=await get(path,{access:'private',useCache:false});
     if(!blob||blob.statusCode!==200)return send(res,404,{error:'Dossier introuvable.'});
     const raw=await new Response(blob.stream).text();
-    if(raw.length>30000)return send(res,413,{error:'Dossier trop volumineux.'});
+    if(raw.length>60000)return send(res,413,{error:'Dossier trop volumineux.'});
     const item=normalizeRequest(JSON.parse(raw));
     if(!item)return send(res,400,{error:'Dossier illisible.'});
     let profile=null,assignment=null;
@@ -57,7 +57,7 @@ module.exports=async function(req,res){
       const message=typeof body.message==='string'?body.message.trim().slice(0,3000):'';
       if(!message)return send(res,400,{error:'Écrivez le message.'});
       item.messages.push({at:new Date().toISOString(),from:'TravauxCorse',text:message});
-      item.history.push({at:new Date().toISOString(),text:'Message envoyé au client par TravauxCorse'});
+      item.history.push({at:new Date().toISOString(),text:'Note interne enregistrée par TravauxCorse'});
     }else return send(res,400,{error:'Action non reconnue.'});
     if(body.action!=='notify')await put(path,JSON.stringify(item),{access:'private',allowOverwrite:true,contentType:'application/json',cacheControlMaxAge:60});
     let notificationSent=false,notificationError;

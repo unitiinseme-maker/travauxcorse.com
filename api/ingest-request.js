@@ -33,6 +33,9 @@ module.exports=async function(req,res){
       return accepted(res);
     }
     if(!process.env.BLOB_STORE_ID&&!process.env.BLOB_READ_WRITE_TOKEN){console.error('Private request store not connected');return accepted(res);}
+    // Public submissions cannot supply internal workflow or assignment metadata.
+    item.date=new Date().toISOString();item.status='Demande reçue';
+    for(const key of ['assignedArtisans','history','messages','documents','quotes'])item[key]=[];
     const path=`requests/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.json`;
     await put(path,JSON.stringify(item),{access:'private',contentType:'application/json',addRandomSuffix:false});
     return accepted(res);

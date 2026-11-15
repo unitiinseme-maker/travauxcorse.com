@@ -63,8 +63,8 @@
       }
       statusLabel.append(select);const statusButton=document.createElement('button');statusButton.className='secondary';statusButton.textContent='Mettre à jour';statusForm.append(statusLabel,statusButton);card.append(statusForm);
       const messageForm=document.createElement('form');messageForm.dataset.messageRequest=item.id;messageForm.className='request-assign-form';
-      const messageLabel=document.createElement('label');messageLabel.textContent='Message au client';const message=document.createElement('textarea');message.name='message';message.maxLength=3000;message.required=true;messageLabel.append(message);
-      const messageButton=document.createElement('button');messageButton.className='secondary';messageButton.textContent='Envoyer le message';messageForm.append(messageLabel,messageButton);card.append(messageForm);
+      const messageLabel=document.createElement('label');messageLabel.textContent='Note interne au dossier';const message=document.createElement('textarea');message.name='message';message.maxLength=3000;message.required=true;messageLabel.append(message);
+      const messageButton=document.createElement('button');messageButton.className='secondary';messageButton.textContent='Enregistrer la note';messageForm.append(messageLabel,messageButton);card.append(messageForm);
       assignments(card,item);list.append(card);
     }
   }
@@ -76,7 +76,7 @@
       if(response.status===401){csrf='';list.replaceChildren();directory.hidden=true;login.hidden=false;setup.hidden=true;status.textContent='Connectez-vous pour consulter les demandes.';return;}
       login.hidden=true;setup.hidden=!data.setup;
       if(!response.ok)throw Error(data.error||'Impossible de charger les demandes.');
-      csrf=data.csrf;directory.hidden=false;try{await loadRoster();}catch(error){directoryStatus.textContent=error.message;roster=[];}draw(data.requests);status.textContent=data.requests.length+' demande(s) enregistrée(s).';
+      csrf=data.csrf;directory.hidden=false;try{await loadRoster();}catch(error){directoryStatus.textContent=error.message;roster=[];}draw(data.requests);status.textContent=data.requests.length+' demande(s) enregistrée(s).'+(data.unreadable?' Attention : '+data.unreadable+' dossier(s) non chargé(s). Réessayez ou faites vérifier le stockage.':'');
     }catch(error){status.textContent=error.message;}
   }
   async function update(payload,button){

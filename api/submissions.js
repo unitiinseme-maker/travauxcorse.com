@@ -22,19 +22,22 @@ module.exports=async function(req,res){
       paths.push(...page.blobs.map(blob=>blob.pathname).filter(path=>path.endsWith('.json')));
       cursor=page.hasMore?page.cursor:undefined;
     }while(cursor&&paths.length<5000);
-    const results=[];
+    const results=[];let unreadable=0;
     for(let i=0;i<paths.length;i+=8){
       const batch=await Promise.all(paths.slice(i,i+8).map(async path=>{
+        try {
         const blob=await get(path,{access:'private',useCache:false});
         if(!blob||blob.statusCode!==200)return null;
         const raw=await new Response(blob.stream).text();
-        const item=raw.length<30000?normalizeRequest(JSON.parse(raw)):null;
+        const item=raw.length<60000?normalizeRequest(JSON.parse(raw)):null;
+        if(!item)unreadable++;
         return item?{...item,id:path}:null;
+        } catch {unreadable++;return null;}
       }));
       results.push(...batch.filter(Boolean));
     }
     results.sort((a,b)=>b.date.localeCompare(a.date));
     const csrf=crypto.createHmac('sha256',config.secret).update(session.nonce).digest('base64url');
-    return json(res,200,{requests:results.slice(0,500),csrf,updatedAt:new Date().toISOString()});
+    return json(res,200,{requests:results.slice(0,500),unreadable,csrf,updatedAt:new Date().toISOString()});
   }catch(error){console.error('Private request store unavailable',error?.message);return json(res,502,{error:'Le stockage privé des demandes est momentanément indisponible. Les notifications par e-mail restent actives.'});}
 };

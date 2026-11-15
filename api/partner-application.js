@@ -28,7 +28,7 @@ module.exports=async function(req,res){
     const zones=[...new Set(rawZones.map(value=>field(value,80)).filter(Boolean))];
     const rawTrades=Array.isArray(body.trades)?body.trades:body.trades?[body.trades]:body.trade?[body.trade]:[];
     const trades=[...new Set(rawTrades.map(value=>field(value,100)).filter(Boolean))];
-    if(!company||!manager||!trades.length||trades.length>31||!zones.length||rawZones.length>25||body.contactConsent!=='oui'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^\+?[\d\s().-]{8,25}$/.test(phone))return reply(req,res,400,{error:'Vérifiez les coordonnées, les métiers, la zone et votre accord de contact.'});
+    if(!company||!manager||!trades.length||trades.length>31||!zones.length||rawZones.length>25||body.contactConsent!=='oui'||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||(!/^\+?[\d\s().-]{8,25}$/.test(phone)||phone.replace(/\D/g,'').length<8||phone.replace(/\D/g,'').length>15))return reply(req,res,400,{error:'Vérifiez les coordonnées, les métiers, la zone et votre accord de contact.'});
     if(!emailConfigured())return reply(req,res,503,{error:'L’envoi est momentanément indisponible. Contactez contact.travauxcorse@gmail.com.'});
     const content=['Nouvelle candidature partenaire TravauxCorse','',`Entreprise : ${company}`,`Responsable : ${manager}`,`E-mail : ${email}`,`Téléphone : ${phone}`,`Métiers : ${trades.join(' · ')}`,`Zones d’intervention : ${zones.join(' · ')}`,`Présentation : ${message||'Non renseignée'}`,'Accord de contact : Oui'].join('\n');
     const result=await sendEmail(EMAIL,'TravauxCorse — Nouvelle candidature partenaire',content);

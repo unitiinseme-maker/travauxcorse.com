@@ -34,3 +34,8 @@ test('all selected micro-regions are delivered in JSON and standard form submiss
   r=await request('POST',{...values,zones:[]});assert.equal(r.status,400);
   r=await request('POST',{...values,zones:Array(26).fill('Marana-Golo')});assert.equal(r.status,400);
 });
+test('server rejects punctuation-only and overlong telephone numbers',async()=>{
+ for(const phone of ['........','( ) - . - .','123456789012345678901']){
+  const r=await request('POST',{...body,phone});assert.equal(r.status,400);
+ }
+});
