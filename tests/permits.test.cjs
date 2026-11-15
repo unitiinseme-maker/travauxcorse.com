@@ -93,3 +93,30 @@ test('professional research is shared by SIREN, idempotent and preserves manual 
  for(const bad of [{...row,siren:'999999999'},{...row,sources:['javascript:alert(1)']},{...row,checkedAt:'2025-01-01'}])assert.throws(()=>importResearch(db,[bad]));
  assert.throws(()=>importResearch(db,[row,row]));assert.equal(JSON.stringify(db),before);
 });
+test('commercial export locks the 26 filtered IDs out of 55 and preserves available contacts',async()=>{
+  const state={version:1,records:{},followups:{},sync:{}};
+  for(let i=0;i<55;i++){
+    const id=crypto.createHash('sha256').update('export-selection-fixture-'+i).digest('hex');
+    state.records[id]={...p,id,number:'export-fixture-'+i};
+    if(i<26)state.followups[id]={status:'À étudier',contactEmail:`fixture-${i}@example.invalid`,contactPhone:'0000000000',contactSource:'professional_public',contactReference:'Synthetic regression fixture'};
+  }
+  entries.set('private-permits/state.json',{text:JSON.stringify(state),etag:'export-selection'});
+  const filters=new URLSearchParams({contact:'Coordonnées disponibles',sort:'date'}).toString();
+  const list=await call('GET','/api/permits?'+filters,null,headers);
+  assert.equal(list.data.total,26);assert.equal(list.data.rows.length,20);assert.equal(list.data.exportIds.length,26);
+  const second=await call('GET','/api/permits?'+filters+'&page=2',null,headers);assert.deepEqual(second.data.exportIds,list.data.exportIds);
+  const body={action:'export',filters,ids:list.data.exportIds};
+  const exported=await call('POST','/api/permits',body,headers);
+  assert.equal(exported.status,200);assert.equal(exported.headers['X-Export-Count'],'26');
+  assert.equal((exported.data.match(/class="project-sheet"/g)||[]).length,26);assert.match(exported.data,/Coordonnées disponibles/);
+  for(let i=0;i<26;i++)assert(exported.data.includes(`fixture-${i}@example.invalid`));
+  assert(!exported.data.includes('export-fixture-54'));
+  assert.equal((await call('POST','/api/permits',{...body,filters:''},headers)).status,409);
+  assert.equal((await call('POST','/api/permits',{...body,ids:body.ids.slice(0,20)},headers)).status,409);
+  assert.equal((await call('POST','/api/permits',{...body,ids:[body.ids[0],body.ids[0]]},headers)).status,400);
+  assert.equal((await call('POST','/api/permits',body)).status,401);
+  assert.equal((await call('POST','/api/permits',body,{...headers,'x-csrf-token':'invalid'})).status,403);
+  const all=await call('GET','/api/permits',null,headers);
+  const reset=await call('POST','/api/permits',{action:'export',filters:'',ids:all.data.exportIds},headers);
+  assert.equal(reset.headers['X-Export-Count'],'55');
+});
