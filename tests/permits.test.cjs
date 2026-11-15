@@ -41,7 +41,7 @@ const payload=Buffer.from(JSON.stringify({exp:Date.now()+360000,nonce:'permit-te
 const cookie='__Host-tc-editor='+payload+'.'+crypto.createHmac('sha256',secret).update(payload).digest('base64url');
 const csrf=crypto.createHmac('sha256',secret).update('permit-test').digest('base64url');
 const headers={cookie,'x-csrf-token':csrf,origin:'https://www.travauxcorse.com',host:'www.travauxcorse.com','content-type':'application/json'};
-function call(method,url,body,head={},fn=handler){return new Promise((resolve,reject)=>{const response={headers:{},setHeader(k,v){this.headers[k]=v;},end(v){resolve({status:this.statusCode||200,data:this.headers['Content-Type']?.startsWith('text/html')?v:JSON.parse(v),headers:this.headers});}};fn({method,url,body,headers:head},response).catch(reject);});}
+function call(method,url,body,head={},fn=handler){return new Promise((resolve,reject)=>{const response={headers:{},setHeader(k,v){this.headers[k]=v;},end(v){resolve({status:this.statusCode||200,data:(this.headers['Content-Type']?.startsWith('text/html')||this.headers['Content-Type']==='application/pdf')?v:JSON.parse(v),headers:this.headers});}};fn({method,url,body,headers:head},response).catch(reject);});}
 test('admin-only boundary, CSRF, detail, persisted follow-up, concurrent edit and idempotent conversion',async()=>{
   const db={version:1,records:mergeRecords({},[p],now).records,followups:{},sync:{}};entries.set('private-permits/state.json',{text:JSON.stringify(db),etag:'initial'});
   assert.equal((await call('GET','/api/permits')).status,401);assert.equal((await call('POST','/api/permits',{action:'sync'})).status,401);
@@ -111,6 +111,10 @@ test('commercial export locks the 26 filtered IDs out of 55 and preserves availa
   assert.equal((exported.data.match(/class="project-sheet"/g)||[]).length,26);assert.match(exported.data,/Coordonnées disponibles/);
   for(let i=0;i<26;i++)assert(exported.data.includes(`fixture-${i}@example.invalid`));
   assert(!exported.data.includes('export-fixture-54'));
+  const pdf=await call('POST','/api/permits',{...body,format:'pdf'},headers);
+  assert.equal(pdf.status,200);assert.equal(pdf.headers['Content-Type'],'application/pdf');assert.equal(pdf.headers['X-Export-Count'],'26');assert.equal(pdf.data.subarray(0,5).toString(),'%PDF-');
+  assert.equal((await call('POST','/api/permits',{...body,format:'pdf',filters:''},headers)).status,409);
+  assert.equal((await call('POST','/api/permits',{...body,format:'unknown'},headers)).status,400);
   assert.equal((await call('POST','/api/permits',{...body,filters:''},headers)).status,409);
   assert.equal((await call('POST','/api/permits',{...body,ids:body.ids.slice(0,20)},headers)).status,409);
   assert.equal((await call('POST','/api/permits',{...body,ids:[body.ids[0],body.ids[0]]},headers)).status,400);
@@ -119,4 +123,14 @@ test('commercial export locks the 26 filtered IDs out of 55 and preserves availa
   const all=await call('GET','/api/permits',null,headers);
   const reset=await call('POST','/api/permits',{action:'export',filters:'',ids:all.data.exportIds},headers);
   assert.equal(reset.headers['X-Export-Count'],'55');
+});
+test('compact PDF keeps both contact sources and omits long reports without changing records',async()=>{
+  const pdf=require('../lib/permit-pdf');
+  const record={...p,businessResearch:{phone:'0400000000',email:'public@example.invalid',note:'Contact indirect via un intermédiaire.'}};
+  const followup={contactPhone:'0600000000',contactEmail:'provided@example.invalid',notes:'LONG INTERNAL REPORT',nextAction:'Rappeler',status:'À contacter'};
+  const before=JSON.stringify({record,followup});const cells=pdf.row(record,followup);
+  for(const value of ['0400000000','0600000000','public@example.invalid','provided@example.invalid'])assert(cells[3].includes(value));
+  assert.match(cells[3],/intermédiaire/);assert.match(cells[4],/Rappeler/);assert(!cells.join(' ').includes('LONG INTERNAL REPORT'));
+  const long=await pdf.renderRows([[...cells.slice(0,3),'long@example.invalid '.repeat(300),cells[4]]]);assert.equal(long.subarray(0,5).toString(),'%PDF-');
+  assert.equal(JSON.stringify({record,followup}),before);
 });
