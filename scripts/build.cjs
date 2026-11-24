@@ -14,10 +14,11 @@ function htmlFiles(dir){return fs.readdirSync(dir,{withFileTypes:true}).flatMap(
 for(const file of htmlFiles(root)){if(routes.some(([,dir])=>file===path.join(root,dir,'index.html'))||path.relative(root,file).startsWith('admin'+path.sep))continue;let html=fs.readFileSync(file,'utf8');const relative=path.relative(root,path.dirname(file)).split(path.sep).join('/');const active=relative.startsWith('conseils')?'/conseils/':relative.startsWith('realisations')?'/realisations/':null;html=html.replace(/<header\b[^>]*>[\s\S]*?<\/header>/,active?header.replace(`href="${active}"`,`href="${active}" aria-current="page"`):header).replace(/<footer\b[^>]*>[\s\S]*?<\/footer>/,footer).replace(/<link[^>]+(?:fonts\.googleapis|fonts\.gstatic)[^>]*>/g,'');if(!html.includes('id="main-content"'))html=html.replace('<main','<main id="main-content"');if(!html.includes('class="skip-link"'))html=html.replace(/(<body[^>]*>)/,'$1<a class="skip-link" href="#main-content">Aller au contenu</a>');const title=html.match(/<title>(.*?)<\/title>/)?.[1]||'TravauxCorse';const desc=html.match(/name="description" content="([^"]*)"/)?.[1]||'Découvrez les services TravauxCorse et les informations utiles pour votre projet.';html=html.replace(/<link[^>]+rel="canonical"[^>]*>/g,'').replace(/<link[^>]+rel="icon"[^>]*>/g,'').replace(/<meta[^>]+(?:property="og:|name="twitter:)[^>]*>/g,'');html=html.replace('</head>',`<link rel="canonical" href="${domain}/${relative}/"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><meta property="og:title" content="${title}"><meta property="og:description" content="${desc}"><meta property="og:type" content="${relative.startsWith('conseils/')?'article':'website'}"><meta property="og:url" content="${domain}/${relative}/"><meta property="og:image" content="${domain}/travauxcorse-logo.png"><meta name="twitter:card" content="summary_large_image"></head>`);fs.writeFileSync(file,html);}
 // Keep lastmod only when an editorial page supplies a verified modification date.
 // Do not use build time as lastmod: a deployment does not imply content was updated.
+const excludedSitemapDirectories=new Set(['admin','tests','api','lib','scripts','node_modules','.git','.github']);
 const publicFiles=htmlFiles(root).filter(f=>{
   const relative=path.relative(root,path.dirname(f)).split(path.sep).join('/');
-  return !['admin','tests'].some(x=>relative===x||relative.startsWith(x+'/'));
-});
+  return !relative.split('/').some(segment=>excludedSitemapDirectories.has(segment));
+}).sort((a,b)=>a.localeCompare(b,'fr'));
 function sitemapEntry(file){
   const relative=path.relative(root,path.dirname(file)).split(path.sep).join('/');
   const html=fs.readFileSync(file,'utf8');
