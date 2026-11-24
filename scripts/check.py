@@ -18,7 +18,9 @@ class Check(HTMLParser):
   if tag in ['a','script','link','img']:
    v=a.get('href')or a.get('src')
    if v:self.links.append(v)
+excluded={'admin','tests','api','lib','scripts','node_modules','.git','.github'}
 for file in root.rglob('index.html'):
+ if any(part in excluded for part in file.relative_to(root).parts[:-1]):continue
  parser=Check();parser.feed(file.read_text());count+=1
  if parser.h1!=1:errors.append(f'{file}: {parser.h1} h1')
  if parser.title!=1 or parser.canonical!=1:errors.append(f'{file}: missing/duplicate SEO metadata')
