@@ -21,9 +21,9 @@ const publicFiles=htmlFiles(root).filter(f=>{
 function sitemapEntry(file){
   const relative=path.relative(root,path.dirname(file)).split(path.sep).join('/');
   const html=fs.readFileSync(file,'utf8');
-  const dates=[...html.matchAll(/"dateModified"\\s*:\\s*"(\\d{4}-\\d{2}-\\d{2})(?:T[^"]*)?"/g)].map(m=>m[1]);
-  const lastmod=dates.length===1&&/^\\d{4}-\\d{2}-\\d{2}$/.test(dates[0])?`<lastmod>${dates[0]}</lastmod>`:'';
+  const dates=[...html.matchAll(/"dateModified"\s*:\s*"(\d{4}-\d{2}-\d{2})(?:T[^"]*)?"/g)].map(m=>m[1]);
+  const lastmod=dates.length===1&&/^\d{4}-\d{2}-\d{2}$/.test(dates[0])?`<lastmod>${dates[0]}</lastmod>`:'';
   return `<url><loc>${domain}/${relative?relative+'/':''}</loc>${lastmod}</url>`;
 }
-fs.writeFileSync(path.join(root,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+publicFiles.map(sitemapEntry).join('\\n')+'\\n</urlset>\\n');
+fs.writeFileSync(path.join(root,'sitemap.xml'),'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+publicFiles.map(sitemapEntry).join('\n')+'\n</urlset>\n');
 console.log('Prerendered '+routes.length+' public routes; shared layout and sitemap updated.');
