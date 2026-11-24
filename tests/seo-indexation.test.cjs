@@ -32,3 +32,31 @@ test('Guides landing page contains visible static direct links',()=>{
  for(const route of ['plombier-bastia','electricien-borgo','renover-maison-corse'])
   assert.ok(html.includes('href="/conseils/'+route+'/"'),'missing link '+route);
 });
+test('Every article has structured information consistent with its public URL',()=>{
+ for(const file of htmlFiles(path.join(root,'conseils'))){
+  if(path.basename(path.dirname(file))==='conseils'||file.includes('tous-les-guides'))continue;
+  const html=fs.readFileSync(file,'utf8'),url=origin+path.relative(root,path.dirname(file)).split(path.sep).join('/')+'/';
+  const nodes=[...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap(m=>{const d=JSON.parse(m[1]);return d['@graph']||[d];});
+  const article=nodes.find(n=>n['@type']==='Article');
+  assert.ok(article,'missing Article '+url);
+  assert.equal(article.url,url,'Article URL '+url);
+  assert.equal(article.mainEntityOfPage,url,'mainEntityOfPage '+url);
+  assert.equal(article.author?.name,'TravauxCorse','author '+url);
+  assert.equal(article.publisher?.name,'TravauxCorse','publisher '+url);
+  assert.ok(nodes.some(n=>n['@type']==='BreadcrumbList'),'breadcrumbs '+url);
+ }
+});
+test('The unfiltered HTML directory links to every guide without hiding them',()=>{
+ const folder=path.join(root,'conseils'),directory=path.join(folder,'tous-les-guides','index.html');
+ const html=fs.readFileSync(directory,'utf8');
+ const guides=htmlFiles(folder).filter(f=>f!==directory&&f!==path.join(folder,'index.html'));
+ const expected=guides.map(f=>'/'+path.relative(root,path.dirname(f)).split(path.sep).join('/')+'/');
+ const actual=[...html.matchAll(/href="(\/conseils\/[^"#]+\/)"/g)].map(m=>m[1]);
+ assert.deepEqual([...new Set(actual)].sort(),expected.sort());
+ assert.ok(!/<(?:section|li|ul|nav)\b[^>]*\shidden(?:[\s=>])/i.test(html),'directory must not require filters or JavaScript');
+ const schema=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+ assert.equal(schema['@type'],'CollectionPage');
+ assert.equal(schema.mainEntity.numberOfItems,guides.length);
+ assert.equal(schema.mainEntity.itemListElement.length,guides.length);
+ assert.ok(fs.readFileSync(path.join(folder,'index.html'),'utf8').includes('href="/conseils/tous-les-guides/"'));
+});
