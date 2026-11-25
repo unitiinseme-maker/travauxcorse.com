@@ -115,3 +115,21 @@
   const script = document.createElement('script');
   script.src = '/lead-capture.js'; script.defer = true; script.dataset.tcLeads = ''; document.head.append(script);
 })();
+
+// Measure the journey from editorial guides to the existing request form.
+// Events are sent only after the visitor opted in to Google Analytics.
+// Never send names, emails, phone numbers or URL query parameters.
+(()=>{
+  document.addEventListener('click', event => {
+    const link=event.target.closest('a[href]');
+    if(!link || !location.pathname.startsWith('/conseils/'))return;
+    let target;
+    try {target=new URL(link.href, location.href);}catch{return;}
+    if(target.origin!==location.origin || target.pathname!=='/deposer-une-demande/')return;
+    if(typeof window.gtag!=='function' || window['ga-disable-G-ZE60839KNB'])return;
+    window.gtag('event', 'project_cta_click', {
+      source_path: location.pathname,
+      destination_path: target.pathname
+    });
+  });
+})();
